@@ -1,11 +1,12 @@
 from mathcli import solve, simplify, derivative
 
 # TODO tests
-# derivatives
+# derivatives + partial derivs
 # integrals
+# pi
 
 # TODO functionality
-# simplify
+# find X
 # CLI
 
 # ---------------------------------------------------------------------------- #
@@ -13,15 +14,16 @@ from mathcli import solve, simplify, derivative
 # ---------------------------------------------------------------------------- #
 # simplify('1+1 - (5 + 3)')
 # simplify('2x + 3x - (x + 2)')
-simplify("sin x - sin(3)")
-simplify("sin**2( x )+ cos**2( 1) + cos(1) - cos**3(2)")
-simplify("sqrt x + tanh 3 - sqrt(x)")
-simplify("log(10/x) -x +log(x)")
-simplify("x*sin(3-sqrt(x))")
+# simplify("sin x - sin(3)")
+# simplify("sin**2( x )+ cos**2( 1) + cos(1) - cos**3(2)")
+# simplify("sqrt x + tanh 3 - sqrt(x)")
+# simplify("log(10/x) -x +log(x)")
+# simplify("x*sin(3-sqrt(x))")
 # simplify('exp(x) - exp(x) +x*log(2)')
 # simplify('x-x')
 
 # ? simplify can also compute derivatives!
+derivative("1")
 derivative("x")
 derivative("2x + 1/x - log(x)")
 
@@ -31,8 +33,8 @@ derivative("2x + 1/x - log(x)")
 
 # # ---------------------------------- numeric --------------------------------- #
 # solve('2 + 3**2 - 5/2')
-solve("(1+1)*2")
-solve("(1+1)2")
+# solve("(1+1)*2")
+# solve("(1+1)2")
 # solve('3^3')
 # solve('1-1')
 
@@ -46,6 +48,7 @@ solve("(1+1)2")
 # solve('exp(2)')
 
 # # --------------------------------- symbolic --------------------------------- #
+
 # solve('3x', x=2)
 # solve('3x +2y -z +5z', z=1000, y=-2, x=2)
 # solve('exp(x)', x=1)

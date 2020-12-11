@@ -1,109 +1,51 @@
-from sympy import simplify as simp
 from rich import print
 from myterial import orange_light
 
+from .expression import Expression
 from ._utils import is_number
-from .parse import clean, parse_symbolic, parse
-from .results import (
-    numeric_expression_result,
-    symbolic_expression_result,
-    simplified_expression_result,
-)
-
-
-def evaluate(expr):
-    """
-        Evaluates a string expression and 
-        returns the parse expression + the result.
-        The result can be either a numnber, if the
-        expression was numeric, or a sympy expression
-        if it was symbolic and needs to be solved.
-
-        Argument:
-            expr: str, expression string
-    """
-    # parse
-    expr = clean(expr)
-
-    try:
-        parsed = parse(expr)
-    except SyntaxError:
-        raise ValueError(
-            f"Got an error while trying to parse expression, perhaps something is missing: {expr}"
-        )
-
-    # evaluate
-    try:
-        result = parsed.evalf()
-    except Exception as e:
-        raise ValueError(
-            f"Failed to evaluate expression: {expr} with error: {e}"
-        )
-
-    return expr, parsed, result
+from .results import Result
+from .errors import ArgumentsNumberError
 
 
 # ----------------------------------- solve ---------------------------------- #
 
 
-def solve(expr, **values):
-    # parse and evaluate
-    expr, parsed, expression = evaluate(expr)
+def solve(expression, **values):
+    expression = Expression(expression)
 
-    # show results
-    if is_number(expression):  # succesfully evaluated numeric expression
-        numeric_expression_result(expr, parsed)
+    if expression.is_solved:
+        # numeric expression is solved already
+        Result(expression).print()
     else:
-        # Solve a symbolic expression
-        # Get the variables in the expression
-        variables, symbolic_function = parse_symbolic(expr, expression)
+        # Check that we have the correct number of variables
+        if len(values) != expression.n_variables:
+            raise ArgumentsNumberError(expression, **values)
 
-        if len(values) != len(variables):
-            raise ValueError(
-                "Wrong number of arguments for evaluating a symbolic expression.\n"
-                "Original expression:\n"
-                f"      {expr}\n"
-                "parsed expression:\n"
-                f"      {parsed}\n"
-                f"Found {len(values)} values for {len(variables)} variables: {variables}\n"
-            )
-
-        # replace variable and evaluate
-        result = symbolic_function(*[values[str(var)] for var in variables])
+        result = expression.solve(**values)
+        expression.add_result_to_string(result)
 
         # print results
-        symbolic_expression_result(
-            expr, simp(expression), variables, values, result
-        )
+        res = Result(expression)
+        res.add_variables(**values)
+        res.print()
 
 
-def simplify(expr, show_result=True):
-    # parse and evaluate
-    expr, parsed, expression = evaluate(expr)
-
-    # check if numeric expression
-    if is_number(expression):
-        print(f"[{orange_light}]Expression was numeric, no need to siplify")
-        if show_result:
-            numeric_expression_result(expr, parsed)
-            return expr, expression, None
-
-    # simplify and print
-    variables, symbolic_function = parse_symbolic(expr, expression)
+def simplify(expression, show_result=True):
+    expression = Expression(expression)
+    simplified = expression.simplify()
 
     if show_result:
-        simplified_expression_result(expr, simp(expression), variables)
-    else:
-        return expr, simp(expression), variables
+        res = Result(expression)
+        res.add_expression(simplified, "Simplified")
+        res.print()
 
 
-def derivative(expr):
-    expr = "diff(" + expr + ")"
-    expr, derivative, variables = simplify(expr, show_result=False)
+def derivative(expression):
+    expression = Expression(expression)
 
-    simplified_expression_result(
-        expr, derivative, variables, is_derivative=True
-    )
+    res = Result(expression)
+    res.add_expression(expression.derivative(), "Derivative")
+    res.print()
 
 
 # TODO: find X, given e.g. '3x + y = 2' and y=1, find 'x'.

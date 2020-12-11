@@ -23,17 +23,6 @@ def parse(expr, evaluate=True):
     return parse_expr(expr, transformations=transformations, evaluate=evaluate)
 
 
-def clean(expr):
-    """
-        cleans up an expression string
-
-        Arguments:
-            expr: tring, expression
-    """
-    expr = expr.replace("^", "**")
-    return expr
-
-
 def parse_symbolic(expr, result):
     """
         Given an expression for a symbolic computation
