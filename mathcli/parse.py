@@ -8,7 +8,7 @@ from sympy.parsing.sympy_parser import (
     convert_equals_signs,
 )
 
-from ._symbols import symbols
+from ._utils import is_number
 
 
 def parse(expr, evaluate=True):
@@ -19,7 +19,7 @@ def parse(expr, evaluate=True):
         implicit_application,
         convert_equals_signs,
     )
-
+    expr = expr.replace("^", "**")
     return parse_expr(expr, transformations=transformations, evaluate=evaluate)
 
 
@@ -34,18 +34,19 @@ def clean(expr):
     return expr
 
 
-def parse_symbolic(expr):
+def parse_symbolic(expr, result):
     """
-        Given an expression string for a symbolic expression
+        Given an expression for a symbolic computation
         it returns a list of the variables in the expression
         and a lambdified function to evaluate the expression
         given variable values.
 
         Arguments:
-            expr: tring, expression
+            expr: string, expression
+            result: sympy expression with variables not yet substituted
     """
     # Get variables in the expression
-    variables = [symb for s, symb in symbols.items() if s in expr]
+    variables = [x for x in list(result.atoms()) if not is_number(x)]
 
     lambda_function = lambdify(variables, parse(expr), modules="numpy")
     return variables, lambda_function
