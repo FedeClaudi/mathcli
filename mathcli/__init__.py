@@ -3,4 +3,4 @@ from rich import pretty
 
 install_traceback()
 pretty.install()
-from mathcli.math import solve, simplify, derivative
+from mathcli.math import calc, solve, simplify, derivative

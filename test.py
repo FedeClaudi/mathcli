@@ -1,13 +1,37 @@
-from mathcli import solve, simplify, derivative
+# from mathcli import solve, simplify, derivative, calc
 
 # TODO tests
-# derivatives + partial derivs
 # integrals
-# pi
 
 # TODO functionality
+# solve ODEs
 # find X
 # CLI
+# tests docstrings...
+
+
+# ? ----------------------------- known limitations ---------------------------- #
+# 1. single letter variables
+# solve('x1+2', x1=2)
+# solve('my_var + your_var')
+
+# ------------------------------- failed tests ------------------------------- #
+# solve("x + 2y - sqrt(z)", "x", y=2)
+
+
+# ---------------------------------------------------------------------------- #
+#                                     solve                                    #
+# ---------------------------------------------------------------------------- #
+# solve('x - y', 'x')
+# solve('x = y', 'x')
+# solve('2x + sin(y) - sqrt(3x)', 'x')
+# solve('2x + sin(y) - sqrt(3x) = 2', 'x')
+# solve('2x + sin(y) - sqrt(3x)', 'x', x=1, y=10)
+# solve("x = y", "x", y=2)
+# solve("x + 2y - sqrt(z)", "x", y=2, z=10)
+# solve('x/0', 'x')
+# solve('sqrt(x) = -1', 'x')
+# solve('sqrt(x) = -y', 'x', y=1)
 
 # ---------------------------------------------------------------------------- #
 #                                   simplify                                   #
@@ -22,45 +46,43 @@ from mathcli import solve, simplify, derivative
 # simplify('exp(x) - exp(x) +x*log(2)')
 # simplify('x-x')
 
-# ? simplify can also compute derivatives!
-derivative("1")
-derivative("x")
-derivative("2x + 1/x - log(x)")
+# ---------------------------------------------------------------------------- #
+#                                  Derivative                                  #
+# ---------------------------------------------------------------------------- #
+# derivative("1")
+# derivative("x")
+# derivative("2x + 1/x - log(x)")
+# derivative('exp(x)')
+# derivative('sin(x)')
+# derivative('cos 2x')
+
+# derivative('3x + y', 'y')
+# derivative('3x + y - log z', 'y', 'z')
+# derivative('3x + y - log z', 'z')
 
 # ---------------------------------------------------------------------------- #
-#                                     SOLVE                                    #
+#                                     calc                                     #
 # ---------------------------------------------------------------------------- #
+# calc('2 + 3**2 - 5/2')
+# calc("(1+1)*2")
+# calc("(1+1)2")
+# calc('3^3')
+# calc('1-1')
+# calc('pi * 2')
+# calc('2*2 - sqrt(10)')
 
-# # ---------------------------------- numeric --------------------------------- #
-# solve('2 + 3**2 - 5/2')
-# solve("(1+1)*2")
-# solve("(1+1)2")
-# solve('3^3')
-# solve('1-1')
+# calc('sin 1')
+# calc('sin**2( 1 )+ cos**2( 1)')
+# calc('sqrt 9 + tanh 3')
+# calc('log 10')
+# calc('2sin(3-sqrt(2))')
+# calc('exp(2)')
 
+# calc('3x', x=2)
+# calc('3x +2y -z +5z', z=1000, y=-2, x=2)
+# calc('exp(x)', x=1)
+# calc('x-x')
 
-# # --------------------------------- operators -------------------------------- #
-# solve('sin 1')
-# solve('sin**2( 1 )+ cos**2( 1)')
-# solve('sqrt 9 + tanh 3')
-# solve('log 10')
-# solve('2sin(3-sqrt(2))')
-# solve('exp(2)')
-
-# # --------------------------------- symbolic --------------------------------- #
-
-# solve('3x', x=2)
-# solve('3x +2y -z +5z', z=1000, y=-2, x=2)
-# solve('exp(x)', x=1)
-# solve('x-x')
-
-# # --------------------------- symbolic + operators --------------------------- #
-# solve('3x + log 10', x=2)
-# solve('3x +2y -sin z', z=1000, y=-2, x=2)
-# solve('sin**2(x) + cos**2(x)', x=10)
-
-
-# ----------------------------- known limitations ---------------------------- #
-# 1. single letter variables
-# solve('x1+2', x1=2)
-# solve('my_var + your_var')
+# calc('3x + log 10', x=2)
+# calc('3x +2y -sin z', z=1000, y=-2, x=2)
+# calc('sin**2(x) + cos**2(x)', x=10)

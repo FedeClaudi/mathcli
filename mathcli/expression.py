@@ -1,5 +1,5 @@
 from sympy.parsing.sympy_parser import parse_expr
-from sympy import latex, lambdify, Derivative
+from sympy import latex, lambdify, Derivative, integrate
 from sympy.parsing.sympy_parser import (
     function_exponentiation,
     standard_transformations,
@@ -9,16 +9,10 @@ from sympy.parsing.sympy_parser import (
 )
 from sympy import simplify as simp
 
-from sympy import latex, lambdify
 
-from rich.table import Table
-
-from myterial import amber, orange
-from myterial import light_blue_light as variables_color
-from myterial import salmon as operator_color
-from myterial import pink as res_color
-
-from ._utils import is_number, is_int, fmt_number
+from .errors import DerivativeArgumentsNumberError, ArgumentsNumberError
+from ._utils import is_number, fmt_number
+from mathcli import theme
 
 
 def clean(expr):
@@ -59,10 +53,19 @@ class Expression:
         self.get_variables()
         self.highlight()
 
-    def derivative(self):
-        expr = Expression(str(Derivative(self.expression, evaluate=True)))
+    def derivative(self, *wrt):
+        try:
+            expr = Expression(
+                str(Derivative(self.expression, *wrt, evaluate=True))
+            )
+        except ValueError:
+            raise DerivativeArgumentsNumberError(self)
+
         expr.strip_result()
         return expr
+
+    def integrate(self, *wrt):
+        return Expression(str(integrate(self.expression, *wrt)))
 
     def simplify(self):
         return Expression(str(simp(self.expression)))
@@ -79,7 +82,7 @@ class Expression:
             self.is_solved = False
 
     def add_result_to_string(self, result):
-        self.string += f" = [b u {res_color}]{fmt_number(result)}"
+        self.string += f" = [b u {theme.result}]{fmt_number(result)}"
         self.highlight()
 
     def strip_result(self):
@@ -94,7 +97,10 @@ class Expression:
         )
 
         # sort the values
-        vals = [values[str(var)] for var in self.variables]
+        try:
+            vals = [values[str(var)] for var in self.variables]
+        except KeyError:
+            raise ArgumentsNumberError(self, **values)
 
         # compute
         return lambda_function(*vals)
@@ -109,11 +115,15 @@ class Expression:
         return f"mathcli.expression.Expression: {self.n_variables} variables"
 
     def __rich_console__(self, *args):
-        yield f"[{amber}]mathcli.expression.Expression: [{orange}]{self.n_variables}[/{orange}] variables\n       " + self.highlighted
+        yield (
+            f"[{theme.text}]mathcli.expression.Expression: "
+            f"[{theme.text_accent}]{self.n_variables}[/{theme.text_accent}] variables\n       "
+            + self.highlighted
+        )
 
     def get_variables(self):
         self.variables = [
-            x for x in list(self.evalued.atoms()) if not is_number(x)
+            x for x in list(self.expression.atoms()) if not is_number(x)
         ]
         self.n_variables = len(self.variables)
 
@@ -121,16 +131,40 @@ class Expression:
         "returns a version of self.string with variables highlighted"
         highlighted = self.string
 
-        # highlight symbols
-        for v in "/-+*=:_|":
-            highlighted = highlighted.replace(
-                v, f"[{operator_color}]{v}[/{operator_color}]"
-            )
+        highlighted = highlighted.replace(
+            "/", f"[{theme.operator}]/[/{theme.operator}]"
+        )
 
         # highlight vars
         for v in self.variables:
             highlighted = highlighted.replace(
-                str(v), f"[{variables_color}]{str(v)}[/{variables_color}]"
+                str(v), f"[{theme.variable}]{str(v)}[/{theme.variable}]"
             )
 
-        self.highlighted = highlighted
+        # highilight words
+        names = ("sin", "cos", "tan", "atan", "sqrt", "log", "exp")
+        for v in names:
+            highlighted = highlighted.replace(
+                str(v),
+                f"[{theme.operator_dark}]{str(v)}[/{theme.operator_dark}]",
+            )
+
+        # highlight symbols
+        for v in "-+*:_|":
+            highlighted = highlighted.replace(
+                v, f"[{theme.operator}]{v}[/{theme.operator}]"
+            )
+        for v in "()":
+            highlighted = highlighted.replace(
+                v, f"[{theme.parenthesis}]{v}[/{theme.parenthesis}]"
+            )
+
+        highlighted = highlighted.replace(
+            "=", f"[{theme.operator}]=[/{theme.operator}]"
+        )
+
+        self.highlighted = f"[{theme.number}] " + highlighted
+
+    def to_latex(self, expr):
+        latexstring = "$" + latex(self.expression) + "$"
+        return latexstring
