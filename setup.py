@@ -5,12 +5,18 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-requirements = []
+requirements = [
+    "sympy",
+    "rich",
+    "pyinspect",
+    "typer",
+    "myterial",
+]
 
 setup(
-    name="XXX",
-    version="XXX",
-    description="XXX",
+    name="mathcli",
+    version="0.0",
+    description="Numerical and symbolic maths in your terminal",
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
@@ -29,9 +35,9 @@ setup(
     extras_require={},
     python_requires=">=3.6",
     packages=find_namespace_packages(exclude=("tests, examples")),
-    entry_points={"console_scripts": []},
+    entry_points={"console_scripts": ["calc = mathcli.cli:cli_calc"]},
     include_package_data=True,
-    url="XXX",
+    url="https://github.com/FedeClaudi/mathcli",
     author="Federico Claudi",
     zip_safe=False,
 )

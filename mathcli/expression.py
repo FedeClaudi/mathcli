@@ -34,7 +34,13 @@ def parse(expr, evaluate=True):
         implicit_application,
         convert_equals_signs,
     )
-    return parse_expr(expr, transformations=transformations, evaluate=evaluate)
+
+    try:
+        return parse_expr(
+            expr, transformations=transformations, evaluate=evaluate
+        )
+    except SyntaxError:
+        raise ValueError(f"Failed to parse expression: {expr}")
 
 
 class Expression:

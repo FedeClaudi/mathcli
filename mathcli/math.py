@@ -13,7 +13,7 @@ def calc(expression, **values):
 
     if expression.is_solved:
         # numeric expression is solved already
-        Result(expression).print()
+        Result(expression, footer="calculate").print()
     else:
         # Check that we have the correct number of variables
         if len(values) != expression.n_variables:
@@ -96,6 +96,3 @@ def solve(equation, solve_for, **given):
         res.add_expression(result, f"Solution")
 
     res.print()
-
-
-# TODO: find X, given e.g. '3x + y = 2' and y=1, find 'x'.
