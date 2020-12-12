@@ -14,12 +14,20 @@ space = "   "
 def values_table(values):
     """
         Creates a rich Table showing variables and their value
+
+        Arguments:
+            values: dict of variables and their values
+
+        Return:
+            rich.table.Table with variables
     """
+    # Create a table
     tb = Table(box=None, show_lines=False, show_header=False)
     tb.add_column(justify="right", width=10)
     for c in range(len(values)):
         tb.add_column(justify="right")
 
+    # sort variables alphabetically and add to table
     sorted_vals = dict(sorted(values.items()))
     tb.add_row(
         "[dim bold]variables:",
@@ -32,9 +40,17 @@ def values_table(values):
 
 
 class Result(Report):
-    width = 120
+    width = 300
 
-    def __init__(self, expression, footer=None):
+    def __init__(self, expression=None, footer=None):
+        """
+            pyinspect.panels.Report subclass showing
+            the results of an operation from mathcli.math
+
+            Arguments:
+                expression: instance of Expression.
+                footre: str, name to add to the panel's footer
+        """
         Report.__init__(
             self,
             dim=theme.result_panel_footer,
@@ -45,9 +61,23 @@ class Result(Report):
         self._type = f"[b]{footer}[/b]"
 
         self.expression = expression
-        self.add_expression()
+
+        if expression:
+            self.add_expression()
 
     def add_expression(self, expression=None, message="Expression"):
+        """
+            Add an expression to the report, ideally highlighted
+            to show variables symbols etc.
+
+            Arguments: 
+                expression: str, expression, number, optional.
+                    If not passed, self.expression is used.
+                    If an expression is passed then expression.highlighted is passed,
+                    if a number then the number is used otherwise a string version 
+                    of any other object.
+                message: str. Message to prepent to expression in the report.
+        """
         expression = expression or self.expression
 
         if is_number(expression):
@@ -62,6 +92,13 @@ class Result(Report):
         self.spacer()
 
     def add_variables(self, message="Values", **values):
+        """
+            Adds a table listing an expression variables.
+
+            Arguments:
+                message: str. Message to prepent to expression in the report.
+                values: dict, optional. Keyword arguments listing variables values.
+        """
         self.add(f"[{theme.text_accent}]{message}:")
         self.add(values_table(values), "rich")
         self.spacer()

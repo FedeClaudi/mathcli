@@ -13,6 +13,11 @@ from myterial import (
 )
 
 
+"""
+    Colors used to highlight string expressions
+    for nice printing with Rich.
+"""
+
 text = indigo_lighter
 text_accent = indigo_light
 variable = orange

@@ -22,6 +22,7 @@
 # ---------------------------------------------------------------------------- #
 #                                     solve                                    #
 # ---------------------------------------------------------------------------- #
+# solve('3x + sqrt(20)')
 # solve('x - y', 'x')
 # solve('x = y', 'x')
 # solve('2x + sin(y) - sqrt(3x)', 'x')
@@ -55,6 +56,7 @@
 # derivative('exp(x)')
 # derivative('sin(x)')
 # derivative('cos 2x')
+# derivative("3x + log(x)", "y")
 
 # derivative('3x + y', 'y')
 # derivative('3x + y - log z', 'y', 'z')
