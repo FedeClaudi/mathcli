@@ -4,8 +4,9 @@ def clean(x):
         (r"\left", ""),
         (r"\right", ""),
         (r"\log", "log"),
-        ("{", ""),
-        ("}", ""),
+        (r"\sin", "sin"),
+        (r"\cos", "cos"),
+        (r"\tan", "tan"),
         (" ", ""),
     ]
 

@@ -82,6 +82,8 @@ class Result(Report):
 
         if is_number(expression):
             expression = fmt_number(expression)
+        elif isinstance(expression, str):
+            expression = Expression(expression).highlighted
         elif isinstance(expression, Expression):
             expression = expression.highlighted
         else:

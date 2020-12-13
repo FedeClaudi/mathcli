@@ -1,5 +1,5 @@
 from sympy.core.numbers import Float, Integer, Rational
-from sympy.sets import ConditionSet, FiniteSet
+from sympy.sets import ConditionSet, FiniteSet, EmptySet
 from sympy import Symbol
 from pyinspect.utils import _class_name
 
@@ -16,11 +16,19 @@ def parse_solveset(solution):
         Returns:
             solutionL str. A string expression with the solution
     """
+    if solution is None:
+        return None
+
     if isinstance(solution, ConditionSet):
-        return str(solution.base_set.args[0])
+        try:
+            return str(solution.base_set.args[0])
+        except IndexError:
+            raise NotImplementedError(
+                f"Unrecognized solution: {_class_name(solution)}"
+            )
     elif isinstance(solution, FiniteSet):
         return str(solution.args[0])
-    elif _class_name(solution) == "EmptySet":
+    elif _class_name(solution) == "EmptySet" or isinstance(solution, EmptySet):
         return None
     else:
         raise NotImplementedError(

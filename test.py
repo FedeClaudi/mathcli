@@ -2,6 +2,8 @@
 # from mathcli.expression import Expression
 # from rich import print
 
+# import unicodeit
+
 # # TODO tests
 # # integrals
 
@@ -14,6 +16,7 @@
 
 # # --------------------------------- printing --------------------------------- #
 # # e = Expression('y * 4*3x + Integral(2, x) - sqrt(10) - log(2) * exp(3) - 1/2 + 1/sin(3) + sqrt(2)/sqrt(3)')
+# # e = Expression('gamma')
 # # print('\n', e)
 # # print(e.string)
 
@@ -44,30 +47,30 @@
 # # ---------------------------------------------------------------------------- #
 # #                                   simplify                                   #
 # # ---------------------------------------------------------------------------- #
-# simplify("1+1 - (5 + 3)")
-# simplify("2x + 3x - (x + 2)")
-# simplify("sin x - sin(3)")
-# simplify("sin**2( x )+ cos**2( 1) + cos(1) - cos**3(2)")
-# simplify("sqrt x + tanh 3 - sqrt(x)")
-# simplify("log(10/x) -x +log(x)")
-# simplify("x*sin(3-sqrt(x))")
-# simplify("exp(x) - exp(x) +x*log(2)")
-# simplify("x-x")
+# # simplify("1+1 - (5 + 3)")
+# # simplify("2x + 3x - (x + 2)")
+# # simplify("sin x - sin(3)")
+# # simplify("sin**2( x )+ cos**2( 1) + cos(1) - cos**3(2)")
+# # simplify("sqrt x + tanh 3 - sqrt(x)")
+# # simplify("log(10/x) -x +log(x)")
+# # simplify("x*sin(3-sqrt(x))")
+# # simplify("exp(x) - exp(x) +x*log(2)")
+# # simplify("x-x")
 
 # # ---------------------------------------------------------------------------- #
 # #                                  Derivative                                  #
 # # ---------------------------------------------------------------------------- #
-# # derivative("1")
-# # derivative("x")
-# # derivative("2x + 1/x - log(x)")
-# # derivative('exp(x)')
-# # derivative('sin(x)')
-# # derivative('cos 2x')
-# # derivative("3x + log(x)", "y")
+# derivative("1")
+# derivative("x")
+# derivative("2x + 1/x - log(x)")
+# derivative("exp(x)")
+# derivative("sin(x)")
+# derivative("cos 2x")
+# derivative("3x + log(x)", "y")
 
-# # derivative('3x + y', 'y')
-# # derivative('3x + y - log z', 'y', 'z')
-# # derivative('3x + y - log z', 'z')
+# derivative("3x + y", "y")
+# derivative("3x + y - log z", "y", "z")
+# derivative("3x + y - log z", "z")
 
 # # ---------------------------------------------------------------------------- #
 # #                                     calc                                     #

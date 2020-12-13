@@ -45,8 +45,8 @@ def parse(expr, evaluate=True):
         return parse_expr(
             expr, transformations=transformations, evaluate=evaluate
         )
-    except SyntaxError:
-        raise ValueError(f"Failed to parse expression: {expr}")
+    except SyntaxError as e:
+        raise ValueError(f"Failed to parse expression: {expr}: {e}")
 
 
 # ---------------------------------------------------------------------------- #
@@ -67,6 +67,7 @@ class ExpressionString(object):
         self.string = clean(expression)
         self.expression = None
         self.result = ""
+        self.variables = []
 
     def __str__(self):
         return self.unicode
@@ -95,7 +96,10 @@ class ExpressionString(object):
             see: https://github.com/svenkreiss/unicodeit
         """
         l = parse(self.string, evaluate=False)
-        ltx = latex(l).replace(" ", "").replace("-", "MINUS")
+        try:
+            ltx = latex(l).replace(" ", "").replace("-", "MINUS")
+        except Exception:  # sometimes latex failes
+            return self.string
 
         # Remove fracs from latex
         while "frac" in ltx:
@@ -127,6 +131,8 @@ class ExpressionString(object):
         for s in self.operators:
             uni = uni.replace(s, f" {s}")
         uni = uni.replace("=", f" = ")
+        uni = uni.replace("}", "")
+        uni = uni.replace("{", "")
         return uni
 
     @property
@@ -145,7 +151,7 @@ class ExpressionString(object):
         ]
 
         colors = [
-            theme.number,
+            theme.unicode,
             theme.operator_dark,
             theme.variable,
             theme.operator_dark,
@@ -169,7 +175,8 @@ class ExpressionString(object):
         )
         highlighted = highlighted.replace("\\", "")
         highlighted = highlighted.replace("  ", " ")
-        return highlighted + self.result
+
+        return f"[{theme.number}]" + highlighted + self.result
 
     def add_result_to_string(self, result):
         """
@@ -200,9 +207,7 @@ class Expression(ExpressionString):
             and creates a sympy expression from it. 
             It can then solve the expression, take derivatives etc..
         """
-        ExpressionString.__init__(self, expression)
-
-        self.variables = []  # variables in the expression
+        ExpressionString.__init__(self, str(expression))
 
         # parse and evaluate
         self.expression = parse(self.string, evaluate=False)
@@ -233,7 +238,7 @@ class Expression(ExpressionString):
                 str(Derivative(self.expression, *wrt, evaluate=True))
             )
         except ValueError:
-            raise DerivativeArgumentsNumberError(self)
+            raise DerivativeArgumentsNumberError(self, wrt)
 
         expr.strip_result()
         return expr
@@ -253,7 +258,10 @@ class Expression(ExpressionString):
             expression and the expression can be fully solved only
             when the values for the variables are passed.
         """
-        self.value = self.expression.evalf()
+        try:
+            self.value = self.expression.evalf()
+        except TypeError:
+            self.value = "couldnt evalf"
 
         if is_number(self.value):
             # numeric expression completely evalued
@@ -285,9 +293,12 @@ class Expression(ExpressionString):
             raise ArgumentsNumberError(self, **values)
 
         # turn the expression into a lambda function
-        lambda_function = lambdify(
-            self.variables, self.expression, modules="numpy"
-        )
+        try:
+            lambda_function = lambdify(
+                self.variables, self.expression, modules="numpy"
+            )
+        except SyntaxError:
+            return None
 
         # sort the values
         try:

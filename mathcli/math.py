@@ -3,7 +3,6 @@ from sympy import solveset
 
 from .expression import Expression
 from .results import Result
-from .errors import CouldNotSolveError
 from ._utils import parse_solveset
 from mathcli import theme
 
@@ -29,6 +28,7 @@ def calc(expression, **values):
     if expression.is_solved:
         # numeric expression is solved already
         Result(expression, footer="calculate").print()
+        result = expression.value
     else:
         result = expression.solve(**values)
         expression.add_result_to_string(result)
@@ -37,7 +37,7 @@ def calc(expression, **values):
         res = Result(expression, footer="calculate")
         res.add_variables(**values)
         res.print()
-    return expression.value
+    return result
 
 
 def simplify(expression, show_result=True):
@@ -91,11 +91,15 @@ def derivative(expression, *wrt):
         ttl += f" w.r.t.[b {theme.variable}] " + ",".join(wrt) + "[/]"
 
     res = Result(expression, footer="derivative")
-    res.add_expression(expression.derivative(*wrt), ttl)
+
+    der = expression.derivative(*wrt)
+    res.add_expression(der, ttl)
     res.print()
 
+    return der.string
 
-def solve(equation, solve_for=None, **given):
+
+def solve(expression, solve_for=None, **given):
     """
         Solve an equation.
         Given an expression for an equation e.g. '3x + 2y = 0` it attempts to solve the equation and 
@@ -114,51 +118,36 @@ def solve(equation, solve_for=None, **given):
         
         Arguments:
             expression: str. Numeric or symbolic expression. Can be an equation. 
-            solve_for: str, optional. Name of the variable to solve for.
+            solve_for: str, optional. Name or the variable to solve for.
             given: kwargs, optional. Dictionary of values for variables not solving for (e.g. 'x=1')
     """
-    # Compute  solution
-    try:
-        lhs, rhs = equation.split("=")
-        eq = Eq(Expression(lhs).expression, Expression(rhs).expression)
-    except ValueError:
-        lhs = equation
-        eq = Eq(Expression(equation).expression, 0)
+    # compute solution to expression
+    expression = Expression(expression)
+    eq = Eq(expression.expression)
 
-    # if solve_for is not passed and only one variable is there solve for that
-    if Expression(lhs).n_variables == 1:
-        solve_for = str(Expression(lhs).variables[0])
+    # numeric
+    if expression.n_variables == 0:
+        return solveset(eq)
 
-    solution = solveset(eq, solve_for)
+    # symbolic
+    if expression.n_variables == 1:
+        solve_for = expression.variables[0]
+    solution = parse_solveset(solveset(eq, solve_for))
 
-    # simplify and make printable
-    solution_string = parse_solveset(solution)
-    if solution_string:
-        if isinstance(solution_string, Eq):
-            solution_string = solution_string.lhs
-        solution_string = str(solution_string)
-
-        try:
-            solution_string = simplify(solution_string, show_result=False)
-            solution = Expression(f"{solve_for} = " + solution_string)
-        except Exception as e:
-            raise CouldNotSolveError(equation, solution_string, e)
-
-    # solve given variables values
-    if given and solution_string:
-        value = Expression(solution_string).solve(**given)
-        result = Expression(solve_for)
-        result.add_result_to_string(value)
-
-    # print
-    res = Result(Expression(f"{eq.lhs} = {eq.rhs}"), footer="solve")
+    # Create Result
+    res = Result(expression, footer="solve")
     res.add_expression(
-        solution if solution_string else "no solution",
+        f"{solve_for} = {solution}" if solution else "no solution",
         f"Solve for [{theme.variable}]{solve_for}[/]",
     )
 
+    # If values are given, we can substitute them into the solution string and compute
     if given:
+        value = Expression(solution).solve(**given)
         res.add_variables(**given, message="Given")
-        res.add_expression(result, f"Solution")
+        res.add_expression(f"{solve_for} = {value}", f"Solution")
+    else:
+        value = solution
 
     res.print()
+    return value

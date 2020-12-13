@@ -9,6 +9,8 @@ from myterial import (
     indigo_lighter,
     red,
     red_dark,
+    teal_light,
+    teal_lighter,
 )
 
 
@@ -16,11 +18,11 @@ from myterial import (
     Colors used to highlight string expressions
     for nice printing with Rich.
 """
-
+unicode = teal_lighter
 text = indigo_lighter
 text_accent = indigo_light
 variable = orange
-number = red_dark
+number = teal_light
 operator = red_dark
 operator_dark = blue_light
 parenthesis = blue
