@@ -8,6 +8,8 @@ from sympy.parsing.sympy_parser import (
     convert_equals_signs,
 )
 from sympy import simplify as simp
+from sympy.parsing.latex import parse_latex
+
 from unicodeit import replace as to_unicode
 
 
@@ -77,6 +79,14 @@ class ExpressionString(object):
 
     def __rich_console__(self, *args):
         yield self.highlighted
+
+    @classmethod
+    def from_latex(cls, latex_expression):
+        """
+            Parses an expression given by a string with
+            latex format and creates a new instance of Expression for it
+        """
+        return cls(str(parse_latex(latex_expression)))
 
     @property
     def latex(self):

@@ -63,3 +63,6 @@ def test_cli(expression):
     else:
         runner.invoke(app, ["simplify", expression["string"]])
     # runner.invoke(app, ['solve', expression['string'], '--solve-for', expression['solve_for'], '--give', expression['given']])
+
+    runner.invoke(app, ["latex", expression["string"]])
+    runner.invoke(app, ["unicode", expression["string"]])

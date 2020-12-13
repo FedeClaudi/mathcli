@@ -1,4 +1,5 @@
 from mathcli import math
+from mathcli.expression import Expression
 import typer
 from typing import List, Optional
 
@@ -104,6 +105,28 @@ def simplify(expression: str):
             expression: str. Numeric or symbolic expression.
     """
     math.simplify(expression)
+
+
+@app.command()
+def latex(expression: str):
+    """
+        Format an expression as latex
+
+        Arguments:
+            expression: str. Numeric or symbolic expression.
+    """
+    typer.echo(Expression(expression).latex)
+
+
+@app.command()
+def unicode(expression: str):
+    """
+        Format an expression as unicode chrs
+
+        Arguments:
+            expression: str. Numeric or symbolic expression.
+    """
+    typer.echo(Expression(expression).unicode)
 
 
 @app.command()
