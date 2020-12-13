@@ -8,12 +8,28 @@ from sympy.parsing.sympy_parser import (
     convert_equals_signs,
 )
 from sympy import simplify as simp
-from unicodeit import replace
+from unicodeit import replace as to_unicode
 
 
 from .errors import DerivativeArgumentsNumberError, ArgumentsNumberError
-from ._utils import is_number, fmt_number
+from ._utils import is_number, fmt_number, is_symbol
 from mathcli import theme, _unicode
+
+
+def clean_for_unicode(x):
+    unicode_to_replace = [
+        ("$", ""),
+        (r"\left", ""),
+        (r"\right", ""),
+        (r"\log", "log"),
+        ("{", ""),
+        ("}", ""),
+        (" ", ""),
+    ]
+
+    for to, rep in unicode_to_replace:
+        x = x.replace(to, rep)
+    return x
 
 
 def clean(expr):
@@ -55,20 +71,10 @@ def parse(expr, evaluate=True):
 
 
 class ExpressionString(object):
-    operators = "−+=-/"
-    symbols = "-+*:_|√-−"
+    operators = "−−+=-"
+    symbols = "−-+*:_|√-−"
     operator_names = ("sin", "cos", "tan", "atan", "sqrt", "log", "exp")
     parentheses = "(){}"
-
-    unicode_to_replace = [
-        ("$", ""),
-        (r"\left", ""),
-        (r"\right", ""),
-        (r"\log", "log"),
-        ("{", ""),
-        ("}", ""),
-        (" ", ""),
-    ]
 
     def __init__(self, expression):
         """
@@ -96,14 +102,51 @@ class ExpressionString(object):
 
     @property
     def unicode(self):
-        ltx = self.latex
-        for to, rep in self.unicode_to_replace:
-            ltx = ltx.replace(to, rep)
+        uni_parts = []
+        args = parse(self.string, evaluate=False).args
 
-        uni = replace(ltx).strip()
-        for symb in self.operators:
-            uni = uni.replace(symb, " " + symb + " ")
+        if "=" in self.string:
+            clean_args = []
+            l, r = args
 
+            if is_symbol(l) or is_number(l):
+                clean_args.append(str(l) + "EQUAL")
+            else:
+                clean_args.extend(list(l.args))
+
+            if is_symbol(r) or is_number(r):
+                clean_args.append("EQUAL " + str(r))
+            else:
+                clean_args.extend(list(r.args))
+        else:
+            clean_args = list(args)
+
+        for n, arg in enumerate(clean_args):
+            ltx = latex(arg).replace(" ", "").replace("-", "MINUS")
+
+            if "frac" in ltx:
+                m1, m2 = ltx.split("}{")
+                m1 = m1[m1.index("{") + 1 :]
+                m2 = m2.replace("}", "")
+
+                idx = ltx.index("\\frac")
+                ltx = "(" + ltx[:idx] + f"{m1}/{m2}" + ")"
+
+            part = to_unicode(clean_for_unicode(ltx))
+            if "MINUS" not in part:
+                if "EQUAL" not in part and n > 0:
+                    part = "+ " + part
+                else:
+                    if part.index("EQUAL") == 1:
+                        part = part.replace("EQUAL", "") + " ="
+                    else:
+                        part = "= " + part.replace("EQUAL", "")
+
+            uni_parts.append(part)
+
+        uni = " ".join(uni_parts)
+        uni = uni.replace("MINUS", "- ")
+        uni = uni.replace("(- ", "- (")
         return uni
 
     @property
@@ -112,21 +155,23 @@ class ExpressionString(object):
         highlighted = self.unicode
 
         lookup = [
-            self.variables,
-            self.operator_names,
-            self.symbols,
-            self.parentheses,
             _unicode.characters,
             _unicode.symbols,
+            self.variables,
+            self.operator_names,
+            self.operators,
+            self.symbols,
+            self.parentheses,
         ]
 
         colors = [
+            theme.number,
+            theme.operator_dark,
             theme.variable,
+            theme.operator_dark,
             theme.operator_dark,
             theme.operator,
             theme.parenthesis,
-            theme.number,
-            theme.operator_dark,
         ]
 
         highlighted = highlighted.replace(
@@ -143,7 +188,8 @@ class ExpressionString(object):
         highlighted = highlighted.replace(
             "=", f"[{theme.operator}]=[/{theme.operator}]"
         )
-        return f"[{theme.number}] " + highlighted
+        highlighted = highlighted.replace("\\", "")
+        return highlighted
 
     def add_result_to_string(self, result):
         """

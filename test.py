@@ -13,8 +13,9 @@
 
 
 # # --------------------------------- printing --------------------------------- #
-
-# # print(Expression('3x + sqrt(10) - log(2) + exp(3)'))
+# # e = Expression('y * 4*3x + Integral(2, x) - sqrt(10) - log(2) * exp(3) - 1/2 + 1/sin(3) + sqrt(2)/sqrt(3)')
+# # print('\n', e)
+# # print(e.string)
 
 # # ? ----------------------------- known limitations ---------------------------- #
 # # 1. single letter variables
@@ -31,9 +32,9 @@
 # # solve('3x + sqrt(20)')
 # # solve('x - y', 'x')
 # # solve('x = y', 'x')
-# solve("2x + sin(y) - sqrt(3x)", "x")
-# solve("2x + sin(y) - sqrt(3x) = 2", "x")
-# solve("2x + sin(y) - sqrt(3x)", "x", x=1, y=10)
+# # solve("2x + sin(y) - sqrt(3x)", "x")
+# # solve("2x + sin(y) - sqrt(3x) = 2", "x")
+# solve("2x + sin(y) - sqrt(3x)", "x", y=10)
 # # solve("x = y", "x", y=2)
 # # solve("x + 2y - sqrt(z)", "x", y=2, z=10)
 # # solve('x/0', 'x')
