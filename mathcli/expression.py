@@ -328,3 +328,7 @@ class Expression(ExpressionString):
             x for x in list(self.expression.atoms()) if not is_number(x)
         ]
         self.n_variables = len(self.variables)
+
+
+def to_sympy(expression):
+    return Expression(expression).expression

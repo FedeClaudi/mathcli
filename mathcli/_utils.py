@@ -46,6 +46,9 @@ def fmt_number(num):
         Returns:
             formatted number: str. 
     """
+    if isinstance(num, str):
+        return num
+
     if num % 1 == 0:
         return str(int(num))
     else:

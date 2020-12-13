@@ -1,9 +1,9 @@
-from sympy import Eq
 from sympy import solveset
 
 from .expression import Expression
 from .results import Result
-from ._utils import parse_solveset
+from .equation import make_eq
+from ._utils import parse_solveset, fmt_number
 from mathcli import theme
 
 
@@ -122,8 +122,8 @@ def solve(expression, solve_for=None, **given):
             given: kwargs, optional. Dictionary of values for variables not solving for (e.g. 'x=1')
     """
     # compute solution to expression
+    eq = make_eq(expression)
     expression = Expression(expression)
-    eq = Eq(expression.expression)
 
     # numeric
     if expression.n_variables == 0:
@@ -136,18 +136,34 @@ def solve(expression, solve_for=None, **given):
 
     # Create Result
     res = Result(expression, footer="solve")
-    res.add_expression(
-        f"{solve_for} = {solution}" if solution else "no solution",
-        f"Solve for [{theme.variable}]{solve_for}[/]",
-    )
+
+    # add solution
+    if not Expression(solution).n_variables:
+        sol = Expression(solution)
+        solution = fmt_number(sol.value)
+        value = solution
+        sol.add_result_to_string(value)
+
+        res.add_expression(
+            sol,
+            f"Solve for [{theme.variable}]{solve_for}[/]",
+            prepend=f"{solve_for} = ",
+        )
+
+    else:
+        res.add_expression(
+            f"{solve_for} = {solution}" if solution else "no solution",
+            f"Solve for [{theme.variable}]{solve_for}[/]",
+        )
 
     # If values are given, we can substitute them into the solution string and compute
-    if given:
-        value = Expression(solution).solve(**given)
-        res.add_variables(**given, message="Given")
-        res.add_expression(f"{solve_for} = {value}", f"Solution")
-    else:
-        value = solution
+    if Expression(solution).n_variables:
+        if given:
+            value = Expression(solution).solve(**given)
+            res.add_variables(**given, message="Given")
+            res.add_expression(f"{solve_for} = {value}", f"Solution")
+        else:
+            value = solution
 
     res.print()
     return value

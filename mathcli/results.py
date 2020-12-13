@@ -65,7 +65,9 @@ class Result(Report):
         if expression:
             self.add_expression()
 
-    def add_expression(self, expression=None, message="Expression"):
+    def add_expression(
+        self, expression=None, message="Expression", prepend=""
+    ):
         """
             Add an expression to the report, ideally highlighted
             to show variables symbols etc.
@@ -90,7 +92,7 @@ class Result(Report):
             expression = str(expression)
 
         self.add(f"[{theme.text_accent}]{message}:")
-        self.add(f"[{theme.text}]" + space + expression, "rich")
+        self.add(space + prepend + f"[{theme.text}]" + expression, "rich")
         self.spacer()
 
     def add_variables(self, message="Values", **values):

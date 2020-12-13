@@ -8,7 +8,7 @@ from myterial import (
     green,
     indigo_lighter,
     red,
-    red_dark,
+    red_light,
     teal_light,
     teal_lighter,
 )
@@ -23,7 +23,7 @@ text = indigo_lighter
 text_accent = indigo_light
 variable = orange
 number = teal_light
-operator = red_dark
+operator = red_light
 operator_dark = blue_light
 parenthesis = blue
 equal = red
