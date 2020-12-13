@@ -1,3 +1,19 @@
+def clean(x):
+    unicode_to_replace = [
+        ("$", ""),
+        (r"\left", ""),
+        (r"\right", ""),
+        (r"\log", "log"),
+        ("{", ""),
+        ("}", ""),
+        (" ", ""),
+    ]
+
+    for to, rep in unicode_to_replace:
+        x = x.replace(to, rep)
+    return x
+
+
 characters = (
     "ₓᵥᵤᵣₒⱼᵢₑₐᶴ₉₈₇₆₅₄₃₂₁₀ᵨᵪᵩᵦᵧᵠᵡᵟᵞᵝ⁸⁹⁰¹²³⁴⁵⁶⁷⁽⁾⁺⁻⁻ᴾ"
     "ᴿᵀᵁᄑᵂᴴᴵᴶᴷᴸᴹᴺᴼᴬᴮᴰᴱᴳˣʸᶻᵖʳˢᵗᵘᵛʷʰⁱʲᵏˡᵐⁿᵒᵃᵇᶜᵈᵉᶠᵍ‱▸▾◂↠⇋⇌※↻⇉⊳º␣↞⇂⋭⇁‰⇆♪↮⇄"

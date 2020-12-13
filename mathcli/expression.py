@@ -12,24 +12,8 @@ from unicodeit import replace as to_unicode
 
 
 from .errors import DerivativeArgumentsNumberError, ArgumentsNumberError
-from ._utils import is_number, fmt_number, is_symbol
+from ._utils import is_number, fmt_number
 from mathcli import theme, _unicode
-
-
-def clean_for_unicode(x):
-    unicode_to_replace = [
-        ("$", ""),
-        (r"\left", ""),
-        (r"\right", ""),
-        (r"\log", "log"),
-        ("{", ""),
-        ("}", ""),
-        (" ", ""),
-    ]
-
-    for to, rep in unicode_to_replace:
-        x = x.replace(to, rep)
-    return x
 
 
 def clean(expr):
@@ -71,7 +55,7 @@ def parse(expr, evaluate=True):
 
 
 class ExpressionString(object):
-    operators = "−−+=-"
+    operators = "−−+-"
     symbols = "−-+*:_|√-−"
     operator_names = ("sin", "cos", "tan", "atan", "sqrt", "log", "exp")
     parentheses = "(){}"
@@ -82,6 +66,7 @@ class ExpressionString(object):
         """
         self.string = clean(expression)
         self.expression = None
+        self.result = ""
 
     def __str__(self):
         return self.unicode
@@ -94,6 +79,9 @@ class ExpressionString(object):
 
     @property
     def latex(self):
+        """
+            Convert expression to latex syntax
+        """
         if self.expression is None:
             expr = parse(self.string, evaluate=False)
         else:
@@ -102,51 +90,43 @@ class ExpressionString(object):
 
     @property
     def unicode(self):
-        uni_parts = []
-        args = parse(self.string, evaluate=False).args
+        """
+            Convert the latex form of the expression to unicode symbols,
+            see: https://github.com/svenkreiss/unicodeit
+        """
+        l = parse(self.string, evaluate=False)
+        ltx = latex(l).replace(" ", "").replace("-", "MINUS")
 
-        if "=" in self.string:
-            clean_args = []
-            l, r = args
+        # Remove fracs from latex
+        while "frac" in ltx:
+            idx = ltx.find("\\frac")
+            elems = []
+            is_open = False
+            for n, letter in enumerate(ltx[idx:]):
+                if letter == "{" and not is_open:
+                    is_open = n + 1
+                elif letter == "}" and is_open:
+                    elems.append(ltx[idx:][is_open:n])
+                    is_open = False
+                    closed = n
 
-            if is_symbol(l) or is_number(l):
-                clean_args.append(str(l) + "EQUAL")
-            else:
-                clean_args.extend(list(l.args))
+                if len(elems) == 2:
+                    ltx = (
+                        " "
+                        + ltx.replace(
+                            ltx[idx : idx + closed + 1],
+                            f"{elems[0]}/{elems[1]}",
+                        )
+                        + " "
+                    )
+                    break
 
-            if is_symbol(r) or is_number(r):
-                clean_args.append("EQUAL " + str(r))
-            else:
-                clean_args.extend(list(r.args))
-        else:
-            clean_args = list(args)
-
-        for n, arg in enumerate(clean_args):
-            ltx = latex(arg).replace(" ", "").replace("-", "MINUS")
-
-            if "frac" in ltx:
-                m1, m2 = ltx.split("}{")
-                m1 = m1[m1.index("{") + 1 :]
-                m2 = m2.replace("}", "")
-
-                idx = ltx.index("\\frac")
-                ltx = "(" + ltx[:idx] + f"{m1}/{m2}" + ")"
-
-            part = to_unicode(clean_for_unicode(ltx))
-            if "MINUS" not in part:
-                if "EQUAL" not in part and n > 0:
-                    part = "+ " + part
-                else:
-                    if part.index("EQUAL") == 1:
-                        part = part.replace("EQUAL", "") + " ="
-                    else:
-                        part = "= " + part.replace("EQUAL", "")
-
-            uni_parts.append(part)
-
-        uni = " ".join(uni_parts)
-        uni = uni.replace("MINUS", "- ")
-        uni = uni.replace("(- ", "- (")
+        # to unicode + cleanup
+        uni = to_unicode(_unicode.clean(ltx))
+        uni = uni.replace("MINUS", "-")
+        for s in self.operators:
+            uni = uni.replace(s, f" {s}")
+        uni = uni.replace("=", f" = ")
         return uni
 
     @property
@@ -178,7 +158,6 @@ class ExpressionString(object):
             "/", f"[{theme.operator}]/[/{theme.operator}]"
         )
 
-        # highlight vars
         for to_replace, color in zip(lookup, colors):
             for v in to_replace:
                 highlighted = highlighted.replace(
@@ -189,22 +168,22 @@ class ExpressionString(object):
             "=", f"[{theme.operator}]=[/{theme.operator}]"
         )
         highlighted = highlighted.replace("\\", "")
-        return highlighted
+        highlighted = highlighted.replace("  ", " ")
+        return highlighted + self.result
 
     def add_result_to_string(self, result):
         """
             Adds a result to the expression string by appending = RESULT
             to it.
         """
-        self.string += f" = [b u {theme.result}]{fmt_number(result)}"
+        self.result = f" = [b u {theme.result}]{fmt_number(result)}"
 
     def strip_result(self):
         """
             Remove the result from the expression string, for when it 
             needs to be removed for cleaner printing.
         """
-        if "=" in self.string:
-            self.string = self.string[: self.string.index("=")]
+        self.result = ""
 
 
 # ---------------------------------------------------------------------------- #
