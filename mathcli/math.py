@@ -3,7 +3,7 @@ from sympy import solveset
 
 from .expression import Expression
 from .results import Result
-from .errors import ArgumentsNumberError, CouldNotSolveError
+from .errors import CouldNotSolveError
 from ._utils import parse_solveset
 from mathcli import theme
 
@@ -23,11 +23,6 @@ def calc(expression, **values):
         Returns:
             the expression's value (either a number or an expression, 
                     depending on if the expression could be solved)
-        
-        Raises:
-            ArgumentsNumberError if the expression has variables and the
-                number of values passed does not match the number of  
-                variables in the expression.
     """
     expression = Expression(expression)
 
@@ -35,10 +30,6 @@ def calc(expression, **values):
         # numeric expression is solved already
         Result(expression, footer="calculate").print()
     else:
-        # Check that we have the correct number of variables
-        if len(values) != expression.n_variables:
-            raise ArgumentsNumberError(expression, **values)
-
         result = expression.solve(**values)
         expression.add_result_to_string(result)
 

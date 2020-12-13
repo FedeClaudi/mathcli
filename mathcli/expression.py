@@ -8,11 +8,12 @@ from sympy.parsing.sympy_parser import (
     convert_equals_signs,
 )
 from sympy import simplify as simp
+from unicodeit import replace
 
 
 from .errors import DerivativeArgumentsNumberError, ArgumentsNumberError
 from ._utils import is_number, fmt_number
-from mathcli import theme
+from mathcli import theme, _unicode
 
 
 def clean(expr):
@@ -48,7 +49,124 @@ def parse(expr, evaluate=True):
         raise ValueError(f"Failed to parse expression: {expr}")
 
 
-class Expression:
+# ---------------------------------------------------------------------------- #
+#                               ExpressionString                               #
+# ---------------------------------------------------------------------------- #
+
+
+class ExpressionString(object):
+    operators = "−+=-/"
+    symbols = "-+*:_|√-−"
+    operator_names = ("sin", "cos", "tan", "atan", "sqrt", "log", "exp")
+    parentheses = "(){}"
+
+    unicode_to_replace = [
+        ("$", ""),
+        (r"\left", ""),
+        (r"\right", ""),
+        (r"\log", "log"),
+        ("{", ""),
+        ("}", ""),
+        (" ", ""),
+    ]
+
+    def __init__(self, expression):
+        """
+            Handles string manipulation of expression strings (e.g. highlighting)
+        """
+        self.string = clean(expression)
+        self.expression = None
+
+    def __str__(self):
+        return self.unicode
+
+    def __repr__(self):
+        return f"mathcli.expression.Expression: {self.n_variables} variables"
+
+    def __rich_console__(self, *args):
+        yield self.highlighted
+
+    @property
+    def latex(self):
+        if self.expression is None:
+            expr = parse(self.string, evaluate=False)
+        else:
+            expr = self.expression
+        return "$$" + latex(expr) + "$$"
+
+    @property
+    def unicode(self):
+        ltx = self.latex
+        for to, rep in self.unicode_to_replace:
+            ltx = ltx.replace(to, rep)
+
+        uni = replace(ltx).strip()
+        for symb in self.operators:
+            uni = uni.replace(symb, " " + symb + " ")
+
+        return uni
+
+    @property
+    def highlighted(self):
+        "returns a version of self.string with variables, symbols etc. highlighted"
+        highlighted = self.unicode
+
+        lookup = [
+            self.variables,
+            self.operator_names,
+            self.symbols,
+            self.parentheses,
+            _unicode.characters,
+            _unicode.symbols,
+        ]
+
+        colors = [
+            theme.variable,
+            theme.operator_dark,
+            theme.operator,
+            theme.parenthesis,
+            theme.number,
+            theme.operator_dark,
+        ]
+
+        highlighted = highlighted.replace(
+            "/", f"[{theme.operator}]/[/{theme.operator}]"
+        )
+
+        # highlight vars
+        for to_replace, color in zip(lookup, colors):
+            for v in to_replace:
+                highlighted = highlighted.replace(
+                    str(v), f"[{color}]{str(v)}[/{color}]"
+                )
+
+        highlighted = highlighted.replace(
+            "=", f"[{theme.operator}]=[/{theme.operator}]"
+        )
+        return f"[{theme.number}] " + highlighted
+
+    def add_result_to_string(self, result):
+        """
+            Adds a result to the expression string by appending = RESULT
+            to it.
+        """
+        self.string += f" = [b u {theme.result}]{fmt_number(result)}"
+
+    def strip_result(self):
+        """
+            Remove the result from the expression string, for when it 
+            needs to be removed for cleaner printing.
+        """
+        if "=" in self.string:
+            self.string = self.string[: self.string.index("=")]
+
+
+# ---------------------------------------------------------------------------- #
+#                                  Expression                                  #
+# ---------------------------------------------------------------------------- #
+
+
+class Expression(ExpressionString):
     def __init__(self, expression):
         """
             Class representing a mathematical expression.
@@ -57,32 +175,16 @@ class Expression:
             and creates a sympy expression from it. 
             It can then solve the expression, take derivatives etc..
         """
+        ExpressionString.__init__(self, expression)
+
         self.variables = []  # variables in the expression
 
         # parse and evaluate
-        self.string = clean(expression)
         self.expression = parse(self.string, evaluate=False)
         self.eval()
 
-        # get variabls in the expression and create highlighted  string representation
+        # get variabls in the expression
         self.get_variables()
-        self.highlight()
-
-    def __str__(self):
-        return (
-            f"mathcli.expression.Expression: {self.n_variables} variables\n      "
-            + self.string
-        )
-
-    def __repr__(self):
-        return f"mathcli.expression.Expression: {self.n_variables} variables"
-
-    def __rich_console__(self, *args):
-        yield (
-            f"[{theme.text}]mathcli.expression.Expression: "
-            f"[{theme.text_accent}]{self.n_variables}[/{theme.text_accent}] variables\n       "
-            + self.highlighted
-        )
 
     def derivative(self, *wrt):
         """
@@ -136,23 +238,6 @@ class Expression:
             # it's a symbolic expression, will need to be value
             self.is_solved = False
 
-    def add_result_to_string(self, result):
-        """
-            Adds a result to the expression string by appending = RESULT
-            to it.
-        """
-        self.string += f" = [b u {theme.result}]{fmt_number(result)}"
-        self.highlight()
-
-    def strip_result(self):
-        """
-            Remove the result from the expression string, for when it 
-            needs to be removed for cleaner printing.
-        """
-        if "=" in self.string:
-            self.string = self.string[: self.string.index("=")]
-        self.highlight()
-
     def solve(self, **values):
         """
             If self.eval didn't yield a number, then we have
@@ -170,6 +255,10 @@ class Expression:
                 ArgumentsNumberError: if the number of variable values specified doesn't match
                     the number of values in the expression.
         """
+        # Check that we have the correct number of variables
+        if len(values) != self.n_variables:
+            raise ArgumentsNumberError(self, **values)
+
         # turn the expression into a lambda function
         lambda_function = lambdify(
             self.variables, self.expression, modules="numpy"
@@ -193,48 +282,3 @@ class Expression:
             x for x in list(self.expression.atoms()) if not is_number(x)
         ]
         self.n_variables = len(self.variables)
-
-    def highlight(self):
-        "returns a version of self.string with variables, symbols etc. highlighted"
-        highlighted = self.string
-
-        highlighted = highlighted.replace(
-            "/", f"[{theme.operator}]/[/{theme.operator}]"
-        )
-
-        # highlight vars
-        for v in self.variables:
-            highlighted = highlighted.replace(
-                str(v), f"[{theme.variable}]{str(v)}[/{theme.variable}]"
-            )
-
-        # highilight words
-        names = ("sin", "cos", "tan", "atan", "sqrt", "log", "exp")
-        for v in names:
-            highlighted = highlighted.replace(
-                str(v),
-                f"[{theme.operator_dark}]{str(v)}[/{theme.operator_dark}]",
-            )
-
-        # highlight symbols
-        for v in "-+*:_|":
-            highlighted = highlighted.replace(
-                v, f"[{theme.operator}]{v}[/{theme.operator}]"
-            )
-        for v in "()":
-            highlighted = highlighted.replace(
-                v, f"[{theme.parenthesis}]{v}[/{theme.parenthesis}]"
-            )
-
-        highlighted = highlighted.replace(
-            "=", f"[{theme.operator}]=[/{theme.operator}]"
-        )
-
-        self.highlighted = f"[{theme.number}] " + highlighted
-
-    def to_latex(self, expr):
-        """
-            Yields a latex representation of the expression.
-        """
-        latexstring = "$" + latex(self.expression) + "$"
-        return latexstring
