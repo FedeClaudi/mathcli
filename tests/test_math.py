@@ -1,4 +1,4 @@
-from mathcli import calc, simplify, derivative  #  , solve
+from mathcli import calc, simplify, derivative, solve
 from mathcli._utils import is_number
 from mathcli.cli import app
 import pytest
@@ -35,17 +35,21 @@ def test_derivative(expression):
     # assert der == expression["der_res"]
 
 
-# @pytest.mark.parametrize('expression', expressions)
-# def test_solve(expression):
-#     if expression['numeric']:
-#         res = solve(expression['string'])
-#     else:
-#         solve(expression['string'], solve_for=expression['solve_for'])
-#         res = solve(expression['string'], solve_for=expression['solve_for'], **expression['given'])
+@pytest.mark.parametrize("expression", expressions)
+def test_solve(expression):
+    if expression["numeric"]:
+        solve(expression["string"])
+    else:
+        solve(expression["string"], solve_for=expression["solve_for"])
+        solve(
+            expression["string"],
+            solve_for=expression["solve_for"],
+            **expression["given"],
+        )
 
-#         assert is_number(res)
+    #     assert is_number(res)
 
-#     assert res == expression['solve_res']
+    # assert res == expression['solve_res']
 
 
 runner = CliRunner()

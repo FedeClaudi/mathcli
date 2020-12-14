@@ -43,4 +43,6 @@ def cache_expression(func):
         if isinstance(result, str):
             to_cache(result)
 
+        return result
+
     return cache

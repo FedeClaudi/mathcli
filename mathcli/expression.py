@@ -273,6 +273,8 @@ class Expression(ExpressionString):
                 DerivativeArgumentsNumberError if the number of variable >2 and wrt is not specified
         """
         logger.log("EXPRESSION", f"{self} - derivative. Wrt: {wrt}")
+        wrt = wrt or ""
+
         try:
             expr = Expression(
                 str(Derivative(self.expression, *wrt, evaluate=False))
