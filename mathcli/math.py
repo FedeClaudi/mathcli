@@ -195,21 +195,28 @@ def solve(expression, solve_for=None, **given):
         res.add_expression(
             sol,
             f"Solve for [{theme.variable}]{solve_for}[/]",
-            prepend=f"{solve_for} = ",
+            prepend=f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= ",
         )
 
     else:
         res.add_expression(
-            f"{solve_for} = {solution}" if solution else "no solution",
+            f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= {solution}"
+            if solution
+            else "no solution",
             f"Solve for [{theme.variable}]{solve_for}[/]",
+            format=False,
         )
 
     # If values are given, we can substitute them into the solution string and compute
     if Expression(solution).n_variables:
         if given:
-            value = Expression(solution).solve(**given)
+            value = Expression(solution).calc(**given)
             res.add_variables(**given, message="Given")
-            res.add_expression(f"{solve_for} = {value}", f"Solution")
+            res.add_expression(
+                f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= [b u {theme.result}]{fmt_number(value)}",
+                f"Solution",
+                format=False,
+            )
         else:
             value = solution
 

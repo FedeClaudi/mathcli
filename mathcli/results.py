@@ -66,7 +66,7 @@ class Result(Report):
             self.add_expression()
 
     def add_expression(
-        self, expression=None, message="Expression", prepend=""
+        self, expression=None, message="Expression", prepend="", format=True,
     ):
         """
             Add an expression to the report, ideally highlighted
@@ -84,7 +84,7 @@ class Result(Report):
 
         if is_number(expression):
             expression = fmt_number(expression)
-        elif isinstance(expression, str):
+        elif isinstance(expression, str) and format:
             expression = Expression(expression).highlighted
         elif isinstance(expression, Expression):
             expression = expression.highlighted
