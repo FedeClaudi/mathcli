@@ -14,7 +14,7 @@ def parse_solveset(solution):
             solution: sympy.set.Set subclasses, output of sympy.solveset
 
         Returns:
-            solutionL str. A string expression with the solution
+            solution: str. A string expression with the solution
     """
     if solution is None:
         return None

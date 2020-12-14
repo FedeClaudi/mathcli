@@ -20,8 +20,7 @@ def calc(expression, **values):
             values: kwargs, dict, optional. Dictionary of values like: 'x=1 y=2'
 
         Returns:
-            the expression's value (either a number or an expression, 
-                    depending on if the expression could be solved)
+            the expression's value. A float.
     """
     expression = Expression(expression)
 
@@ -37,6 +36,7 @@ def calc(expression, **values):
         res = Result(expression, footer="calculate")
         res.add_variables(**values)
         res.print()
+
     return result
 
 
@@ -80,11 +80,15 @@ def derivative(expression, wrt=None):
         Arguments:
             expression: str. Numeric or symbolic expression.
             wrt: str, optional. String of variables names and derivative order, e.g. 'x2'
+
+        Returns:
+            derivative: str. String with the (partial) derivative of the expression
     """
     expression = Expression(expression)
     expression.strip_result()
 
     ttl = "Derivative"
+    wrt = wrt or ""
 
     if not wrt and expression.n_variables == 1:
         wrt = [str(expression.variables[0])]
@@ -98,7 +102,7 @@ def derivative(expression, wrt=None):
 
     res = Result(expression, footer="derivative")
 
-    der = expression.derivative(*wrt)
+    der = expression.derivative(wrt)
     res.add_expression(der, ttl)
     res.print()
 
@@ -126,6 +130,10 @@ def solve(expression, solve_for=None, **given):
             expression: str. Numeric or symbolic expression. Can be an equation. 
             solve_for: str, optional. Name or the variable to solve for.
             given: kwargs, optional. Dictionary of values for variables not solving for (e.g. 'x=1')
+
+        Returns: 
+            value: float, str. If no variables values are given, and the expression is
+                symbolic then an expression string is return, otherwise a float.
     """
     # compute solution to expression
     eq = make_eq(expression)

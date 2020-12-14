@@ -56,28 +56,13 @@ def parse_kwargs(val):
     return kwargs
 
 
-def parse_args(val):
-    """
-        Given a string of the form:
-            'xyz' or 'x'
-        it parses it to return a list:
-            ['x', 'y', 'z'] or ['x']
-
-        Arguments:
-            val: str
-
-        Returns:
-            parsed args: list of strings
-    """
-    if val is None or not val[0]:
-        return []
-    else:
-        return [x for x in val[0]]
+def stitch(expression_tuple):
+    return "".join(expression_tuple)
 
 
 @app.command()
 def calc(
-    expression: str,
+    expression: List[str] = typer.Argument(None),
     v: Optional[List[str]] = typer.Option(None, help="variables values"),
 ):
     """
@@ -91,11 +76,11 @@ def calc(
             expression: str. Numeric or symbolic expression.
             v: str, optional. A string with variables values like: 'x=1 y=2'
     """
-    math.calc(expression, **parse_kwargs(v))
+    math.calc(stitch(expression), **parse_kwargs(v))
 
 
 @app.command()
-def simplify(expression: str):
+def simplify(expression: List[str] = typer.Argument(None)):
     """
         Simplify an expression.
         Simplifies an expression, e.g. '3x + 2x -1' becomes '5x -1'
@@ -104,48 +89,50 @@ def simplify(expression: str):
         Arguments:
             expression: str. Numeric or symbolic expression.
     """
-    math.simplify(expression)
+    math.simplify(stitch(expression))
 
 
 @app.command()
-def latex(expression: str):
+def latex(expression: List[str] = typer.Argument(None)):
     """
         Format an expression as latex
 
         Arguments:
             expression: str. Numeric or symbolic expression.
     """
-    typer.echo(Expression(expression).latex)
+    typer.echo(Expression(stitch(expression)).latex)
 
 
 @app.command()
-def unicode(expression: str):
+def unicode(expression: List[str] = typer.Argument(None)):
     """
         Format an expression as unicode chrs
 
         Arguments:
             expression: str. Numeric or symbolic expression.
     """
-    typer.echo(Expression(expression).unicode)
+    typer.echo(Expression(stitch(expression)).unicode)
 
 
 @app.command()
-def derivative(expression: str, v: str = typer.Option(None)):
+def derivative(
+    expression: List[str] = typer.Argument(None), wrt: str = typer.Option(None)
+):
     """
         Compute the derivative of an expression.
         For expressions with no or single variables, no other argument is necessary:
         if a variable is present the derivative will be computed for that variable. 
         If >1 variables is present, the user must specify for which variables the
-        derivative is to be computed. This is done with the --v option which should
+        derivative is to be computed. This is done with the --wrt option which should
         be used to pass a string e.g. 'x' to compute the derivate w.r.t. x.
         For more information about derivatives: https://docs.sympy.org/latest/tutorial/calculus.html
 
 
         Arguments:
             expression: str. Numeric or symbolic expression.
-            v: str, optional. A string with variables names like 'x'
+            wrt: str, optional. A string with variables names like 'x'
     """
-    math.derivative(expression, v)
+    math.derivative(stitch(expression), wrt)
 
 
 @app.command()
@@ -174,7 +161,7 @@ def solve(
             solve_for: str, optional. Name of the variable to solve for.
             given: str, optional. Values of variables not solving for (e.g. 'x=1')
     """
-    math.solve(expression, solve_for, **parse_kwargs(given))
+    math.solve(stitch(expression), solve_for, **parse_kwargs(given))
 
 
 if __name__ == "__main__":

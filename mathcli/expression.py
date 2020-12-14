@@ -230,7 +230,7 @@ class Expression(ExpressionString):
         # get variabls in the expression
         self.get_variables()
 
-    def derivative(self, *wrt):
+    def derivative(self, wrt):
         """
             Take the derivative of the expression.
             If 0 or 1 variables are present, no need to pass any other argument.
@@ -252,7 +252,7 @@ class Expression(ExpressionString):
                 str(Derivative(self.expression, *wrt, evaluate=False))
             )
         except ValueError:
-            raise DerivativeArgumentsNumberError(self, *wrt)
+            raise DerivativeArgumentsNumberError(self, wrt)
 
         expr.strip_result()
         expr.add_result_to_string(expr.expression.doit())
