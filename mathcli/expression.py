@@ -136,6 +136,7 @@ class ExpressionString(object):
                     break
 
         # to unicode + cleanup
+
         uni = to_unicode(_unicode.clean(ltx))
         uni = uni.replace("MINUS", "-")
         for s in self.operators:
@@ -193,7 +194,10 @@ class ExpressionString(object):
             Adds a result to the expression string by appending = RESULT
             to it.
         """
-        self.result = f" = [b u {theme.result}]{fmt_number(result)}"
+        try:
+            self.result = f" = [b u {theme.result}]{fmt_number(result)}"
+        except TypeError:
+            self.result = f" = [b u {theme.result}]{result}"
 
     def strip_result(self):
         """
@@ -235,7 +239,7 @@ class Expression(ExpressionString):
             For more information about derivatives: https://docs.sympy.org/latest/tutorial/calculus.html
 
             Arguments:
-                wrt: str. Variable number of variables name
+                wrt: str. Variable number of variables name or ints for derivative order
 
             Returns:
                 a new Expression representing the derivative. 
@@ -245,12 +249,13 @@ class Expression(ExpressionString):
         """
         try:
             expr = Expression(
-                str(Derivative(self.expression, *wrt, evaluate=True))
+                str(Derivative(self.expression, *wrt, evaluate=False))
             )
         except ValueError:
-            raise DerivativeArgumentsNumberError(self, wrt)
+            raise DerivativeArgumentsNumberError(self, *wrt)
 
         expr.strip_result()
+        expr.add_result_to_string(expr.expression.doit())
         return expr
 
     def simplify(self):

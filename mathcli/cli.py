@@ -145,7 +145,7 @@ def derivative(expression: str, v: str = typer.Option(None)):
             expression: str. Numeric or symbolic expression.
             v: str, optional. A string with variables names like 'x'
     """
-    math.derivative(expression, *parse_args(v))
+    math.derivative(expression, v)
 
 
 @app.command()

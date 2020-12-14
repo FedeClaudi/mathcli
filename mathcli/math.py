@@ -66,7 +66,7 @@ def simplify(expression, show_result=True):
     return simplified.string
 
 
-def derivative(expression, *wrt):
+def derivative(expression, wrt=None):
     """
         Compute the derivative of an expression.
         For expressions with no or single variables, no other argument is necessary:
@@ -79,16 +79,22 @@ def derivative(expression, *wrt):
 
         Arguments:
             expression: str. Numeric or symbolic expression.
-            wrt: str, optional. Variable number of strings with variables names names
+            wrt: str, optional. String of variables names and derivative order, e.g. 'x2'
     """
     expression = Expression(expression)
     expression.strip_result()
 
     ttl = "Derivative"
+
     if not wrt and expression.n_variables == 1:
         wrt = [str(expression.variables[0])]
+
     if wrt:
-        ttl += f" w.r.t.[b {theme.variable}] " + ",".join(wrt) + "[/]"
+        ttl += f" w.r.t.[b {theme.variable}] " + wrt + "[/]"
+
+        # split wrt into letters/numbers
+        nums = "123456789"
+        wrt = [s if s not in nums else int(s) for s in wrt]
 
     res = Result(expression, footer="derivative")
 

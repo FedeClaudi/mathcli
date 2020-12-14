@@ -8,6 +8,7 @@ def clean(x):
         (r"\cos", "cos"),
         (r"\tan", "tan"),
         (" ", ""),
+        ("partial^{2", "partial^{2}"),
     ]
 
     for to, rep in unicode_to_replace:
