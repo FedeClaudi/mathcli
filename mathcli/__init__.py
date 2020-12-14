@@ -7,8 +7,10 @@ pretty.install()
 from loguru import logger
 import sys
 
-# logger.remove()
-# logger.add(sys.stderr, level="INFO")
+# comment these two lines out to show logging info
+logger.remove()
+logger.add(sys.stderr, level="INFO")
+
 logger.level("EXPRESSION", no=15, color="<yellow>", icon="🖇")
 logger.level("MATH", no=15, color="<green>", icon="🖇")
 
