@@ -31,7 +31,6 @@ app = typer.Typer(help="Numerical and symbolic math in your terminal")
             derivative  Compute the derivative of an expression.
             simplify    Simplify an expression.
             solve       Solve an equation.
-                                        
 """
 
 

@@ -1,6 +1,7 @@
 from sympy.core.numbers import Float, Integer, Rational
 from sympy.sets import ConditionSet, FiniteSet, EmptySet
 from pyinspect.utils import _class_name
+from loguru import logger
 
 
 def parse_solveset(solution):
@@ -15,6 +16,7 @@ def parse_solveset(solution):
         Returns:
             solution: str. A string expression with the solution
     """
+    logger.debug(f"PARSE SOLVESET with solution: {solution}")
     if solution is None:
         return None
 

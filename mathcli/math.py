@@ -1,4 +1,5 @@
 from sympy import solveset
+from loguru import logger
 
 from .expression import Expression, to_sympy
 from .results import Result
@@ -32,6 +33,7 @@ def calc(expression, **values):
         Returns:
             the expression's value. A float.
     """
+    logger.log("MATH", f'called CALC with "{expression}" and values {values}')
     expression = Expression(expression)
 
     if expression.is_solved:
@@ -64,6 +66,7 @@ def simplify(expression, show_result=True):
         Returns:
             the simplified expression as a string.
     """
+    logger.log("MATH", f'called SIMPLIFY with "{expression}"')
     expression = Expression(expression)
     expression.strip_result()
     simplified = expression.simplify()
@@ -96,6 +99,10 @@ def derivative(expression, wrt=None):
         Returns:
             derivative: str. String with the (partial) derivative of the expression
     """
+    logger.log(
+        "MATH", f'called DERIVATIVE with "{expression}" and wrt "{wrt}"'
+    )
+
     expression = Expression(expression)
     expression.strip_result()
     ttl = "Derivative"
@@ -145,6 +152,11 @@ def solve(expression, solve_for=None, **given):
             value: float, str. If no variables values are given, and the expression is
                 symbolic then an expression string is return, otherwise a float.
     """
+    logger.log(
+        "MATH",
+        f'called SOLVE with "{expression}" and solve_for "{solve_for}", given {given}',
+    )
+
     # compute solution to expression
     eq = make_eq(expression)
     expression = Expression(expression)

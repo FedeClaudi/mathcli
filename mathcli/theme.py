@@ -18,18 +18,17 @@ from myterial import (
     Colors used to highlight string expressions
     for nice printing with Rich.
 """
-unicode = teal_lighter
-text = indigo_lighter
-text_accent = indigo_light
-variable = orange
-number = teal_light
+
+equal = red
 operator = red_light
 operator_dark = blue_light
+number = teal_light
 parenthesis = blue
-equal = red
+text = indigo_lighter
+text_accent = indigo_light
 solution = pink
 result = pink
-
-
 result_panel = green
 result_panel_footer = green_dark
+unicode = teal_lighter
+variable = orange

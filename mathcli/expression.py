@@ -1,5 +1,5 @@
 from sympy.parsing.sympy_parser import parse_expr
-from sympy import latex, lambdify, Derivative
+from sympy import latex, lambdify, Derivative, preview
 from sympy.parsing.sympy_parser import (
     function_exponentiation,
     standard_transformations,
@@ -188,6 +188,29 @@ class ExpressionString(object):
 
         return f"[{theme.number}]" + highlighted + self.result
 
+    def to_image(self, filepath, transparent_bg=False):
+        """
+            Save the expression as rendered latex to an image file.
+
+            Arguments:
+                filepath: str, Path. Path to where the image file will be saved
+                transparent_bg: bool. If true the image will have a transparent background
+        """
+        options = ["-T", "tight", "-z", "0", "--truecolor", "-D 1200"]
+        if transparent_bg:
+            options.extend(["-bg", "Transparent"])
+
+        preview(
+            self.latex,
+            viewer="file",
+            filename=filepath,
+            euler=False,
+            dvioptions=options,
+        )
+
+        logger.log("EXPRESSION", f"saved image to file: {filepath}")
+        print(f"Saved equation to image [{filepath}]")
+
     def add_result_to_string(self, result):
         """
             Adds a result to the expression string by appending = RESULT
@@ -224,7 +247,9 @@ class Expression(ExpressionString):
 
         # parse and evaluate
         self.expression = parse(self.string, evaluate=False)
-        logger.debug(f"Created EXPRESSION: {self.unicode}")
+        logger.log(
+            "EXPRESSION", f"Created: {self.unicode} from string {expression}"
+        )
         self.eval()
 
         # get variabls in the expression
@@ -247,7 +272,7 @@ class Expression(ExpressionString):
             Raises:
                 DerivativeArgumentsNumberError if the number of variable >2 and wrt is not specified
         """
-        logger.debug(f"{self} - derivative. Wrt: {wrt}")
+        logger.log("EXPRESSION", f"{self} - derivative. Wrt: {wrt}")
         try:
             expr = Expression(
                 str(Derivative(self.expression, *wrt, evaluate=False))
@@ -264,7 +289,7 @@ class Expression(ExpressionString):
             Simplify the expression, returns a  new instance of Expression
             For more information about simplification: https://docs.sympy.org/latest/tutorial/simplification.html
         """
-        logger.debug(f"{self} - simplify")
+        logger.log("EXPRESSION", (f"{self} - simplify"))
         return Expression(str(simp(self.expression)))
 
     def eval(self):
@@ -305,7 +330,7 @@ class Expression(ExpressionString):
                 ArgumentsNumberError: if the number of variable values specified doesn't match
                     the number of values in the expression.
         """
-        logger.debug(f"{self} - solve. Values: {values}")
+        logger.log("EXPRESSION", f"{self} - solve. Values: {values}")
 
         # Check that we have the correct number of variables
         if len(values) != self.n_variables:
