@@ -41,11 +41,23 @@ def calc(expression, **values):
         Result(expression, footer="calculate").print()
         result = expression.value
     else:
-        result = expression.solve(**values)
-        expression.add_result_to_string(result)
+        # calc
+        result = expression.calc(**values)
 
-        # print results
-        res = Result(expression, footer="calculate")
+        # if expression is a derivative, add the derivative's value. Then print
+        if expression.is_derivative:
+            res = Result(expression, footer="calculate")
+
+            deriv = Expression(expression.expression.doit())
+            deriv.add_result_to_string(result)
+
+            res.add_expression(deriv, message="Derivative")
+
+        else:
+            expression.add_result_to_string(result)
+            res = Result(expression, footer="calculate")
+
+        # print
         res.add_variables(**values)
         res.print()
 

@@ -247,8 +247,13 @@ class Expression(ExpressionString):
 
         # parse and evaluate
         self.expression = parse(self.string, evaluate=False)
+
+        # check if expression is derivative
+        self.is_derivative = isinstance(self.expression, Derivative)
+
         logger.log(
-            "EXPRESSION", f"Created: {self.unicode} from string {expression}"
+            "EXPRESSION",
+            f"Created: {self.unicode} from string {expression}. Is derivative: {self.is_derivative}",
         )
         self.eval()
 
@@ -315,10 +320,10 @@ class Expression(ExpressionString):
             # it's a symbolic expression, will need to be value
             self.is_solved = False
 
-    def solve(self, **values):
+    def calc(self, **values):
         """
             If self.eval didn't yield a number, then we have
-            a symbolic expression that needs to be solved given the values
+            a symbolic expression whose value needs to be calculated given the values
             of it's variables.
             For more information: https://docs.sympy.org/latest/modules/solvers/solveset.html
 
@@ -339,11 +344,20 @@ class Expression(ExpressionString):
             raise ArgumentsNumberError(self, **values)
 
         # turn the expression into a lambda function
+        # but first check if its a derivative
+        if self.is_derivative:
+            expression = self.expression.doit()
+        else:
+            expression = self.expression
+
         try:
             lambda_function = lambdify(
-                self.variables, self.expression, modules="numpy"
+                self.variables, expression, modules="numpy"
             )
-        except SyntaxError:
+        except (SyntaxError, NameError) as e:
+            logger.warn(
+                f'Failed to lambdify expression "{self}" with error: {e}'
+            )
             return None
 
         # sort the values
@@ -360,9 +374,12 @@ class Expression(ExpressionString):
             Gets the name and number of variables
             in the expression.
         """
-        self.variables = [
-            x for x in list(self.expression.atoms()) if not is_number(x)
-        ]
+        if self.is_derivative:
+            atoms = self.expression.doit().atoms()
+        else:
+            atoms = self.expression.atoms()
+
+        self.variables = [x for x in list(atoms) if not is_number(x)]
         self.n_variables = len(self.variables)
 
 

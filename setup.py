@@ -17,7 +17,7 @@ requirements = [
 
 setup(
     name="mathcli",
-    version="0.0",
+    version="0.1",
     description="Numerical and symbolic maths in your terminal",
     long_description=long_description,
     long_description_content_type="text/markdown",

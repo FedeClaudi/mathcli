@@ -34,7 +34,7 @@ def values_table(values):
         *[f"[{theme.variable}]" + str(v) for v in sorted_vals.keys()],
     )
     tb.add_row(
-        "[dim bold]values:", *[str(round(v, 2)) for v in sorted_vals.values()]
+        "[dim bold]values:", *[fmt_number(v) for v in sorted_vals.values()]
     )
     return tb
 
