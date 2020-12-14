@@ -1,6 +1,5 @@
 from sympy.core.numbers import Float, Integer, Rational
 from sympy.sets import ConditionSet, FiniteSet, EmptySet
-from sympy import Symbol
 from pyinspect.utils import _class_name
 
 
@@ -65,10 +64,3 @@ def is_number(x):
             is number: bool. True if x is a number
     """
     return isinstance(x, (Float, Integer, Rational, float, int))
-
-
-def is_symbol(x):
-    """
-        Returns true if the imput is a sympy.Symbol
-    """
-    return isinstance(x, Symbol)

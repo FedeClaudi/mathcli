@@ -5,7 +5,15 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-requirements = ["sympy", "rich", "pyinspect", "typer", "myterial", "unicodeit"]
+requirements = [
+    "sympy",
+    "rich",
+    "pyinspect",
+    "typer",
+    "myterial",
+    "unicodeit",
+    "loguru",
+]
 
 setup(
     name="mathcli",

@@ -1,12 +1,22 @@
 from sympy import solveset
 
-from .expression import Expression
+from .expression import Expression, to_sympy
 from .results import Result
-from .equation import make_eq
 from ._utils import parse_solveset, fmt_number
+from .cache import cache_expression
 from mathcli import theme
 
 
+def make_eq(expression):
+    """
+        Return a sympy expression representing an equation
+    """
+    if "=" not in expression:
+        expression += " = 0"
+    return to_sympy(expression)
+
+
+@cache_expression
 def calc(expression, **values):
     """
         Calculate the value of an expression. 
@@ -40,6 +50,7 @@ def calc(expression, **values):
     return result
 
 
+@cache_expression
 def simplify(expression, show_result=True):
     """
         Simplify an expression.
@@ -66,6 +77,7 @@ def simplify(expression, show_result=True):
     return simplified.string
 
 
+@cache_expression
 def derivative(expression, wrt=None):
     """
         Compute the derivative of an expression.
@@ -86,14 +98,11 @@ def derivative(expression, wrt=None):
     """
     expression = Expression(expression)
     expression.strip_result()
-
     ttl = "Derivative"
-    wrt = wrt or ""
 
     if not wrt and expression.n_variables == 1:
-        wrt = [str(expression.variables[0])]
-
-    if wrt:
+        wrt = str(expression.variables[0])
+    elif wrt:
         ttl += f" w.r.t.[b {theme.variable}] " + wrt + "[/]"
 
         # split wrt into letters/numbers
@@ -109,6 +118,7 @@ def derivative(expression, wrt=None):
     return der.string
 
 
+@cache_expression
 def solve(expression, solve_for=None, **given):
     """
         Solve an equation.

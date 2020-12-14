@@ -11,7 +11,7 @@ from sympy import simplify as simp
 from sympy.parsing.latex import parse_latex
 
 from unicodeit import replace as to_unicode
-
+from loguru import logger
 
 from .errors import DerivativeArgumentsNumberError, ArgumentsNumberError
 from ._utils import is_number, fmt_number
@@ -136,7 +136,6 @@ class ExpressionString(object):
                     break
 
         # to unicode + cleanup
-
         uni = to_unicode(_unicode.clean(ltx))
         uni = uni.replace("MINUS", "-")
         for s in self.operators:
@@ -225,6 +224,7 @@ class Expression(ExpressionString):
 
         # parse and evaluate
         self.expression = parse(self.string, evaluate=False)
+        logger.debug(f"Created EXPRESSION: {self.unicode}")
         self.eval()
 
         # get variabls in the expression
@@ -247,6 +247,7 @@ class Expression(ExpressionString):
             Raises:
                 DerivativeArgumentsNumberError if the number of variable >2 and wrt is not specified
         """
+        logger.debug(f"{self} - derivative. Wrt: {wrt}")
         try:
             expr = Expression(
                 str(Derivative(self.expression, *wrt, evaluate=False))
@@ -263,6 +264,7 @@ class Expression(ExpressionString):
             Simplify the expression, returns a  new instance of Expression
             For more information about simplification: https://docs.sympy.org/latest/tutorial/simplification.html
         """
+        logger.debug(f"{self} - simplify")
         return Expression(str(simp(self.expression)))
 
     def eval(self):
@@ -303,6 +305,8 @@ class Expression(ExpressionString):
                 ArgumentsNumberError: if the number of variable values specified doesn't match
                     the number of values in the expression.
         """
+        logger.debug(f"{self} - solve. Values: {values}")
+
         # Check that we have the correct number of variables
         if len(values) != self.n_variables:
             raise ArgumentsNumberError(self, **values)
