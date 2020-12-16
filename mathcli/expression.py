@@ -112,28 +112,28 @@ class ExpressionString(object):
             return self.string
 
         # Remove fracs from latex
-        while "frac" in ltx:
-            idx = ltx.find("\\frac")
-            elems = []
-            is_open = False
-            for n, letter in enumerate(ltx[idx:]):
-                if letter == "{" and not is_open:
-                    is_open = n + 1
-                elif letter == "}" and is_open:
-                    elems.append(ltx[idx:][is_open:n])
-                    is_open = False
-                    closed = n
-
-                if len(elems) == 2:
-                    ltx = (
-                        " "
-                        + ltx.replace(
-                            ltx[idx : idx + closed + 1],
-                            f"{elems[0]}/{elems[1]}",
-                        )
-                        + " "
+        ltx = _unicode.clean(ltx)
+        cleaned = []
+        for frac in ltx.split("\\frac"):
+            if frac and "}" in frac:
+                div = frac.index("}{")
+                if div > 2:
+                    no = frac.find("{"), frac.rfind("}")
+                    frac = (
+                        "("
+                        + "".join(f for e, f in enumerate(frac) if e not in no)
+                        + ")"
                     )
-                    break
+                    frac = frac.replace("}{", ")/(")
+                else:
+                    no = frac.find("{"), frac.rfind("}")
+                    frac = "".join(
+                        f for e, f in enumerate(frac) if e not in no
+                    )
+                    frac = frac.replace("}{", "/")
+            cleaned.append(frac)
+
+        ltx = " ".join(cleaned)
 
         # to unicode + cleanup
         uni = to_unicode(_unicode.clean(ltx))
@@ -143,6 +143,8 @@ class ExpressionString(object):
         uni = uni.replace("=", f" = ")
         uni = uni.replace("}", "")
         uni = uni.replace("{", "")
+        uni = uni.replace("( ", "(")
+        uni = uni.replace(" )", ")")
         return uni
 
     @property
@@ -186,7 +188,7 @@ class ExpressionString(object):
         highlighted = highlighted.replace("\\", "")
         highlighted = highlighted.replace("  ", " ")
 
-        return f"[{theme.number}]" + highlighted + self.result
+        return highlighted + self.result
 
     def to_image(self, filepath, transparent_bg=False):
         """
@@ -216,10 +218,12 @@ class ExpressionString(object):
             Adds a result to the expression string by appending = RESULT
             to it.
         """
-        try:
+        if is_number(result):
             self.result = f" = [b u {theme.result}]{fmt_number(result)}"
-        except TypeError:
-            self.result = f" = [b u {theme.result}]{result}"
+        else:
+            self.result = (
+                f" = [b u {theme.result}]{Expression(result).unicode}"
+            )
 
     def strip_result(self):
         """

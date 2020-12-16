@@ -200,7 +200,7 @@ def solve(expression, solve_for=None, **given):
 
     else:
         res.add_expression(
-            f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= {solution}"
+            f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= {Expression(solution).highlighted}"
             if solution
             else "no solution",
             f"Solve for [{theme.variable}]{solve_for}[/]",

@@ -49,6 +49,8 @@ def fmt_number(num):
     """
     if isinstance(num, str):
         return num
+    elif not is_number(num):
+        return num
 
     if num % 1 == 0:
         return str(int(num))
