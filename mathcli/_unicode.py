@@ -6,10 +6,8 @@ def to_unicode(ltx):
         Convert a latex string to unicode characters
     """
     ltx = ltx.replace("-", "MINUS")
-    unicode_to_replace = [
+    ltx_to_replace = [
         ("=", " = "),
-        ("}", ""),
-        ("{", ""),
         ("+", " +"),
         ("*", " *"),
         ("-", " -"),
@@ -17,12 +15,23 @@ def to_unicode(ltx):
         (" )", ")"),
     ]
 
-    for to, rep in unicode_to_replace:
+    for to, rep in ltx_to_replace:
         ltx = ltx.replace(to, rep)
 
-    ltx = replace(ltx)
-    ltx = ltx.replace("MINUS", " -")
-    return ltx
+    # to unicode
+    uni = replace(ltx)
+
+    unicode_to_replace = [
+        ("}", ""),
+        ("{", ""),
+        ("( ", "("),
+        (" )", ")"),
+    ]
+    for to, rep in unicode_to_replace:
+        uni = uni.replace(to, rep)
+
+    uni = uni.replace("MINUS", " -")
+    return uni
 
 
 def replace_in_string(string, idx, _with):
@@ -34,24 +43,41 @@ def parse_frac(frac):
         Parse a string with latex code
         for a fractional
     """
-    div = frac.index("}{")
-    first, last = frac.find("{"), frac.rfind("}")
+    # get pre - numerator / denominator - post
+    pre, post = frac.split("}{")
 
-    frac = replace_in_string(frac, first, "(")
-    frac = replace_in_string(frac, last, ")")
+    pre_count = 1
+    for n, p in enumerate(pre[::-1]):
+        if p == "}":
+            pre_count += 1
+        elif p == "{":
+            pre_count -= 1
 
-    dividend, divisor = frac.split("}{")
-    dividend = to_unicode(dividend).lstrip()
-    divisor = to_unicode(divisor)
+        if pre_count == 0:
+            break
+    pre, numerator = pre[:n], pre[n:]
 
-    if div == 2:
-        out = dividend + "/" + divisor
-        out = replace_in_string(out, out.rfind(")"), "")
+    post_count = 1
+    for m, p in enumerate(post):
+        if p == "}":
+            post_count -= 1
+        elif p == "{":
+            post_count += 1
 
-    else:
-        out = f"({dividend})/({divisor}".strip()
+        if post_count == 0:
+            break
 
-    out = replace_in_string(out, out.find("("), "")
+    numerator, pre = pre[:n], pre[n:]
+    denominator, post = post[:m], post[m:]
+
+    if len(numerator) > 1:
+        numerator = f"({numerator})"
+
+    if len(denominator) > 1:
+        denominator = f"({denominator})"
+
+    out = f"{to_unicode(pre)} {to_unicode(numerator)}/{to_unicode(denominator)} {to_unicode(post)}"
+
     return out
 
 
@@ -60,7 +86,7 @@ def parse_derivation(der):
         Parses (∂)/(∂x) to ∂/∂x
     """
     der = der.replace("(", "").replace(")", "")
-    return der + "  "
+    return der + " "
 
 
 def clean_latex(ltx):

@@ -39,6 +39,7 @@ class Highlighter(RegexHighlighter):
         r"(?P<operators>[-+/*√ᶴ△∫∑Π]+)",
         r"(?P<equal>[=]+)",
         r"(?P<deriv>[∂/∂]+)",
+        r"(?P<deriv>[d/d]+)",
         r"(?P<mathb>[∅𝒩ℂℛℋℰℒℳℚℤℍℙℝAℬℑℯℒℋℰℛℊ𝒩]+)",
     ]
 

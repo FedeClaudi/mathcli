@@ -39,7 +39,7 @@ def calc(expression, **values):
 
     if expression.is_solved:
         # numeric expression is solved already
-        Result(expression, footer="calculate").print()
+        res = Result(expression, footer="calculate")
         result = expression.value
     else:
         # calc
@@ -48,20 +48,15 @@ def calc(expression, **values):
         # if expression is a derivative, add the derivative's value. Then print
         if expression.is_derivative:
             res = Result(expression, footer="calculate")
-
             deriv = Expression(expression.expression.doit())
-            deriv.add_result_to_string(result)
-
-            res.add_expression(deriv, message="Derivative")
+            res.add_expression(deriv, message="Derivative", result=result)
 
         else:
-            expression.add_result_to_string(result)
-            res = Result(expression, footer="calculate")
+            res = Result(expression, footer="calculate", result=result)
 
-        # print
         res.add_variables(**values)
-        res.print()
 
+    print(res)
     return result
 
 
@@ -81,14 +76,12 @@ def simplify(expression, show_result=True):
     """
     logger.log("MATH", f'called SIMPLIFY with "{expression}"')
     expression = Expression(expression)
-    expression.strip_result()
     simplified = expression.simplify()
-    simplified.strip_result()
 
     if show_result:
         res = Result(expression, footer="simplify")
         res.add_expression(simplified, "Simplified")
-        res.print()
+        print(res)
 
     return simplified.string
 
@@ -117,7 +110,6 @@ def derivative(expression, wrt=None):
     )
 
     expression = Expression(expression)
-    expression.strip_result()
     ttl = "Derivative"
 
     if not wrt and expression.n_variables == 1:
@@ -132,7 +124,7 @@ def derivative(expression, wrt=None):
     res = Result(expression, footer="derivative")
 
     der = expression.derivative(wrt)
-    res.add_expression(der, ttl)
+    res.add_expression(der, ttl, result=der.expression.doit())
     print(res)
 
     return der.string
@@ -191,21 +183,20 @@ def solve(expression, solve_for=None, **given):
         sol = Expression(solution)
         solution = fmt_number(sol.value)
         value = solution
-        sol.add_result_to_string(value)
 
         res.add_expression(
             sol,
             f"Solve for [{theme.variable}]{solve_for}[/]",
-            prepend=f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= ",
+            prepend=f"[{theme.variable}]{solve_for} ",
+            result=value,
         )
 
     else:
         res.add_expression(
-            f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= {Expression(solution).highlighted}"
-            if solution
-            else "no solution",
+            f"[{theme.variable}]{solve_for}" if solution else "no solution",
             f"Solve for [{theme.variable}]{solve_for}[/]",
             format=False,
+            result=solution if solution else None,
         )
 
     # If values are given, we can substitute them into the solution string and compute
@@ -214,12 +205,13 @@ def solve(expression, solve_for=None, **given):
             value = Expression(solution).calc(**given)
             res.add_variables(**given, message="Given")
             res.add_expression(
-                f"[{theme.variable}]{solve_for} [{theme.operator_dark}]= [b u {theme.result}]{fmt_number(value)}",
+                f"[{theme.variable}]{solve_for}",
                 f"Solution",
                 format=False,
+                result=value,
             )
         else:
             value = solution
 
-    res.print()
+    print(res)
     return value

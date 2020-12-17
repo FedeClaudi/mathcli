@@ -43,7 +43,7 @@ def values_table(values):
 class Result(Report):
     width = 300
 
-    def __init__(self, expression=None, footer=None):
+    def __init__(self, expression=None, footer=None, **kwargs):
         """
             pyinspect.panels.Report subclass showing
             the results of an operation from mathcli.math
@@ -64,10 +64,15 @@ class Result(Report):
         self.expression = expression
 
         if expression:
-            self.add_expression()
+            self.add_expression(**kwargs)
 
     def add_expression(
-        self, expression=None, message="Expression", prepend="", format=True,
+        self,
+        expression=None,
+        message="Expression",
+        prepend="",
+        result=None,
+        format=True,
     ):
         """
             Add an expression to the report, ideally highlighted
@@ -79,9 +84,13 @@ class Result(Report):
                     If an expression is passed then expression.highlighted is passed,
                     if a number then the number is used otherwise a string version 
                     of any other object.
-                message: str. Message to prepent to expression in the report.
+                format: bool. If expression is str and format is true, the string
+                    is formatted as an expression's unicode representation
+                message: str. Message to title to expression in the report.
+                prepend: str. Message to prepend to the expression
+                result: str, expr. Expression's result
         """
-
+        # get expression
         expression = expression or self.expression
 
         if is_number(expression):
@@ -93,14 +102,25 @@ class Result(Report):
         else:
             expression = str(expression)
 
+        # get result
+        if result is not None:
+            if is_number(result):
+                result = fmt_number(result)
+            elif isinstance(result, Expression):
+                result = result.unicode
+            else:
+                result = Expression(result).unicode
+
+        # put everything together
+        string = space + prepend + expression
+        if result is not None:
+            string += "= " + result
+
+        # add to report
         self.add(f"[{theme.text_accent}]{message}:")
         self.add(
-            console.render_str(
-                space + prepend + expression, highlighter=Highlighter()
-            ),
-            "rich",
+            console.render_str(string, highlighter=Highlighter()), "rich",
         )
-        # self.tb.add_row(console.render(expression), 'rich')
 
         self.spacer()
 

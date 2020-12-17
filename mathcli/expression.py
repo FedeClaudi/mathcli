@@ -13,8 +13,8 @@ from sympy.parsing.latex import parse_latex
 from loguru import logger
 
 from .errors import DerivativeArgumentsNumberError, ArgumentsNumberError
-from ._utils import is_number, fmt_number
-from mathcli import theme, _unicode
+from ._utils import is_number
+from mathcli import _unicode
 
 
 def clean(expr):
@@ -77,7 +77,7 @@ class ExpressionString(object):
         return self.unicode
 
     def __repr__(self):
-        return f"mathcli.expression.Expression: {self.n_variables} variables"
+        return self.string
 
     def __rich_console__(self, *args):
         yield self.unicode
@@ -143,7 +143,13 @@ class ExpressionString(object):
             r = _unicode.replace_in_string(r, r.find("("), "")
             r = _unicode.replace_in_string(r, r.rfind(")"), "")
             out.append(r)
-        return "".join(out)
+        out = "".join(out).replace("  ", " ")
+
+        logger.log(
+            "EXPRESSION", "To  UNICODE: " + out,
+        )
+
+        return out
 
     def to_image(self, filepath, transparent_bg=False):
         """
@@ -167,25 +173,6 @@ class ExpressionString(object):
 
         logger.log("EXPRESSION", f"saved image to file: {filepath}")
         print(f"Saved equation to image [{filepath}]")
-
-    def add_result_to_string(self, result):
-        """
-            Adds a result to the expression string by appending = RESULT
-            to it.
-        """
-        if is_number(result):
-            self.result = f" = [b u {theme.result}]{fmt_number(result)}"
-        else:
-            self.result = (
-                f" = [b u {theme.result}]{Expression(result).unicode}"
-            )
-
-    def strip_result(self):
-        """
-            Remove the result from the expression string, for when it 
-            needs to be removed for cleaner printing.
-        """
-        self.result = ""
 
 
 # ---------------------------------------------------------------------------- #
@@ -216,7 +203,7 @@ class Expression(ExpressionString):
 
         logger.log(
             "EXPRESSION",
-            f"Created: {self.unicode} from string {expression}. Is derivative: {self.is_derivative}",
+            f"\nCreated: {self.unicode} from string {expression}.\nIs derivative: {self.is_derivative}\nIs eq: {self.is_eq}",
         )
         self.eval()
 
@@ -250,8 +237,6 @@ class Expression(ExpressionString):
         except ValueError:
             raise DerivativeArgumentsNumberError(self, wrt)
 
-        expr.strip_result()
-        expr.add_result_to_string(expr.expression.doit())
         return expr
 
     def simplify(self):
@@ -278,7 +263,6 @@ class Expression(ExpressionString):
         if is_number(self.value):
             # numeric expression completely evalued
             self.is_solved = True
-            self.add_result_to_string(self.value)
         else:
             # it's a symbolic expression, will need to be value
             self.is_solved = False
