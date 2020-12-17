@@ -1,5 +1,5 @@
 from sympy.parsing.sympy_parser import parse_expr
-from sympy import latex, lambdify, Derivative, preview
+from sympy import latex, lambdify, Derivative, preview, Eq
 from sympy.parsing.sympy_parser import (
     function_exponentiation,
     standard_transformations,
@@ -10,7 +10,6 @@ from sympy.parsing.sympy_parser import (
 from sympy import simplify as simp
 from sympy.parsing.latex import parse_latex
 
-from unicodeit import replace as to_unicode
 from loguru import logger
 
 from .errors import DerivativeArgumentsNumberError, ArgumentsNumberError
@@ -36,6 +35,9 @@ def parse(expr, evaluate=True):
             expr: string, expression
             evaluate: bool. If true it evaluates the parsed expression. 
     """
+    if not isinstance(expr, str):
+        return expr
+
     transformations = standard_transformations + (
         function_exponentiation,
         implicit_multiplication_application,
@@ -78,7 +80,7 @@ class ExpressionString(object):
         return f"mathcli.expression.Expression: {self.n_variables} variables"
 
     def __rich_console__(self, *args):
-        yield self.highlighted
+        yield self.unicode
 
     @classmethod
     def from_latex(cls, latex_expression):
@@ -86,7 +88,7 @@ class ExpressionString(object):
             Parses an expression given by a string with
             latex format and creates a new instance of Expression for it
         """
-        return cls(str(parse_latex(latex_expression)))
+        return cls(parse_latex(latex_expression))
 
     @property
     def latex(self):
@@ -105,90 +107,43 @@ class ExpressionString(object):
             Convert the latex form of the expression to unicode symbols,
             see: https://github.com/svenkreiss/unicodeit
         """
-        l = parse(self.string, evaluate=False)
-        try:
-            ltx = latex(l).replace(" ", "").replace("-", "MINUS")
-        except Exception:  # sometimes latex failes
-            return self.string
+        if not self.is_eq:
+            ltx = _unicode.clean_latex(latex(self.expression))
+        else:
+            ltx = (
+                _unicode.clean_latex(latex(self.expression.lhs))
+                + "="
+                + _unicode.clean_latex(latex(self.expression.rhs))
+            )
 
-        # Remove fracs from latex
-        ltx = _unicode.clean(ltx)
-        cleaned = []
+        if self.is_derivative:
+            # clean up the latex for derivative expressions
+            delta, expr = ltx.split("}(")
+            ltx = delta + "}" + expr[:-1]
+
+        # split based on latex's \\frac and clean them up
+        out = []
         for frac in ltx.split("\\frac"):
-            if frac and "}" in frac:
-                div = frac.index("}{")
-                if div > 2:
-                    no = frac.find("{"), frac.rfind("}")
-                    frac = (
-                        "("
-                        + "".join(f for e, f in enumerate(frac) if e not in no)
-                        + ")"
-                    )
-                    frac = frac.replace("}{", ")/(")
-                else:
-                    no = frac.find("{"), frac.rfind("}")
-                    frac = "".join(
-                        f for e, f in enumerate(frac) if e not in no
-                    )
-                    frac = frac.replace("}{", "/")
-            cleaned.append(frac)
+            if not frac:
+                continue
+            if "}{" in frac:
+                out.append(_unicode.parse_frac(frac))
+            else:
+                out.append(_unicode.to_unicode(frac))
 
-        ltx = " ".join(cleaned)
+        if self.is_derivative:
+            out[0] = _unicode.parse_derivation(
+                out[0]
+            )  # clean up derivation symbols
 
-        # to unicode + cleanup
-        uni = to_unicode(_unicode.clean(ltx))
-        uni = uni.replace("MINUS", "-")
-        for s in self.operators:
-            uni = uni.replace(s, f" {s}")
-        uni = uni.replace("=", f" = ")
-        uni = uni.replace("}", "")
-        uni = uni.replace("{", "")
-        uni = uni.replace("( ", "(")
-        uni = uni.replace(" )", ")")
-        return uni
+        if self.is_eq:
+            l, r = "".join(out).split("=")
+            out = [l + "="]
 
-    @property
-    def highlighted(self):
-        "returns a version of self.string with variables, symbols etc. highlighted"
-        highlighted = self.unicode
-
-        lookup = [
-            _unicode.characters,
-            _unicode.symbols,
-            self.variables,
-            self.operator_names,
-            self.operators,
-            self.symbols,
-            self.parentheses,
-        ]
-
-        colors = [
-            theme.unicode,
-            theme.operator_dark,
-            theme.variable,
-            theme.operator_dark,
-            theme.operator_dark,
-            theme.operator,
-            theme.parenthesis,
-        ]
-
-        highlighted = highlighted.replace(
-            "/", f"[{theme.operator}]/[/{theme.operator}]"
-        )
-
-        for to_replace, color in zip(lookup, colors):
-            for v in to_replace:
-                highlighted = highlighted.replace(
-                    str(v), f"[{color}]{str(v)}[/{color}]"
-                )
-
-        highlighted = highlighted.replace(
-            "=", f"[{theme.operator}]=[/{theme.operator}]"
-        )
-        highlighted = highlighted.replace("\\", "")
-        highlighted = highlighted.replace("  ", " ")
-
-        return highlighted + self.result
+            r = _unicode.replace_in_string(r, r.find("("), "")
+            r = _unicode.replace_in_string(r, r.rfind(")"), "")
+            out.append(r)
+        return "".join(out)
 
     def to_image(self, filepath, transparent_bg=False):
         """
@@ -250,10 +205,14 @@ class Expression(ExpressionString):
         ExpressionString.__init__(self, str(expression))
 
         # parse and evaluate
-        self.expression = parse(self.string, evaluate=False)
+        if isinstance(expression, str):
+            self.expression = parse(self.string, evaluate=False)
+        else:
+            self.expression = expression
 
         # check if expression is derivative
         self.is_derivative = isinstance(self.expression, Derivative)
+        self.is_eq = isinstance(self.expression, Eq)
 
         logger.log(
             "EXPRESSION",

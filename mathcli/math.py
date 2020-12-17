@@ -1,5 +1,6 @@
 from sympy import solveset
 from loguru import logger
+from rich import print
 
 from .expression import Expression, to_sympy
 from .results import Result
@@ -132,7 +133,7 @@ def derivative(expression, wrt=None):
 
     der = expression.derivative(wrt)
     res.add_expression(der, ttl)
-    res.print()
+    print(res)
 
     return der.string
 

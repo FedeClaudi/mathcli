@@ -5,6 +5,7 @@ from sympy import init_printing
 from ._utils import is_number, fmt_number
 from .expression import Expression
 from mathcli import theme
+from .theme import console, Highlighter
 
 init_printing(use_unicode=True)
 
@@ -80,19 +81,27 @@ class Result(Report):
                     of any other object.
                 message: str. Message to prepent to expression in the report.
         """
+
         expression = expression or self.expression
 
         if is_number(expression):
             expression = fmt_number(expression)
         elif isinstance(expression, str) and format:
-            expression = Expression(expression).highlighted
+            expression = Expression(expression).unicode
         elif isinstance(expression, Expression):
-            expression = expression.highlighted
+            expression = expression.unicode
         else:
             expression = str(expression)
 
         self.add(f"[{theme.text_accent}]{message}:")
-        self.add(space + prepend + f"[{theme.text}]" + expression, "rich")
+        self.add(
+            console.render_str(
+                space + prepend + expression, highlighter=Highlighter()
+            ),
+            "rich",
+        )
+        # self.tb.add_row(console.render(expression), 'rich')
+
         self.spacer()
 
     def add_variables(self, message="Values", **values):
