@@ -82,9 +82,6 @@ class ExpressionString(object):
     def __rich__(self):
         return self.unicode
 
-    # def __rich_console__(self, *args):
-    #     yield self.unicode
-
     @classmethod
     def from_latex(cls, latex_expression):
         """
