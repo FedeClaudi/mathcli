@@ -73,6 +73,7 @@ class Result(Report):
         prepend="",
         result=None,
         format=True,
+        result_arrow=False,
     ):
         """
             Add an expression to the report, ideally highlighted
@@ -89,6 +90,7 @@ class Result(Report):
                 message: str. Message to title to expression in the report.
                 prepend: str. Message to prepend to the expression
                 result: str, expr. Expression's result
+                result_arrow: bool. If true an arrow is used instead of an  equal signed
         """
         # get expression
         expression = expression or self.expression
@@ -114,7 +116,8 @@ class Result(Report):
         # put everything together
         string = space + prepend + expression
         if result is not None:
-            string += "= " + result
+            symbol = "=" if not result_arrow else "→"
+            string += symbol + result
 
         # add to report
         self.add(f"[{theme.text_accent}]{message}:")

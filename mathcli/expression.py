@@ -119,7 +119,7 @@ class ExpressionString(object):
         if self.is_derivative:
             # clean up the latex for derivative expressions
             delta, expr = ltx.split("}(")
-            ltx = delta + "}" + expr[:-1]
+            ltx = delta + "} [" + expr[:-1].strip() + "] "
 
         # parse exponentials
         ltx = _unicode.parse_exponents(ltx)

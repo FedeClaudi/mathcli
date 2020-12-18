@@ -124,7 +124,9 @@ def derivative(expression, wrt=None):
     res = Result(expression, footer="derivative")
 
     der = expression.derivative(wrt)
-    res.add_expression(der, ttl, result=der.expression.doit())
+    res.add_expression(
+        der, ttl, result=der.expression.doit(), result_arrow=True
+    )
     print(res)
 
     return der.string
