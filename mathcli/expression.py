@@ -77,10 +77,13 @@ class ExpressionString(object):
         return self.unicode
 
     def __repr__(self):
-        return self.string
+        return self.unicode
 
-    def __rich_console__(self, *args):
-        yield self.unicode
+    def __rich__(self):
+        return self.unicode
+
+    # def __rich_console__(self, *args):
+    #     yield self.unicode
 
     @classmethod
     def from_latex(cls, latex_expression):
@@ -120,6 +123,9 @@ class ExpressionString(object):
             # clean up the latex for derivative expressions
             delta, expr = ltx.split("}(")
             ltx = delta + "}" + expr[:-1]
+
+        # parse exponentials
+        ltx = _unicode.parse_exponents(ltx)
 
         # split based on latex's \\frac and clean them up
         out = []

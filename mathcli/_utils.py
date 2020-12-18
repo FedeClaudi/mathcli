@@ -4,6 +4,40 @@ from pyinspect.utils import _class_name
 from loguru import logger
 
 
+def get_closed_parenthesis(string):
+    """
+        Given a string like '{xx{xx}xx}'
+        it finds when the second parenthesis is closed
+    """
+    count = 0
+    for n, letter in enumerate(string):
+        if letter == "{":
+            count += 1
+        elif letter == "}":
+            count -= 1
+        if count == 0:
+            break
+    return n
+
+
+def get_opened_parenthesis(string):
+    """
+        Given a string like '{xx{xx}xx}'
+        this function walks backwards and finds when the 
+        last parenthesis was first opened
+    """
+    count = 0
+    for n, letter in enumerate(string[::-1]):
+        if letter == "}":
+            count += 1
+        elif letter == "{":
+            count -= 1
+
+        if count == 0:
+            break
+    return len(string) - n
+
+
 def parse_solveset(solution):
     """
         Given what sympy.solvest(eq) returned while
