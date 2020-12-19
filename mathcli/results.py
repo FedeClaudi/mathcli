@@ -107,7 +107,7 @@ class Result(Report):
         # get result
         if result is not None:
             if is_number(result):
-                result = fmt_number(result)
+                result = " " + fmt_number(result)
             elif isinstance(result, Expression):
                 result = result.unicode
             else:
@@ -116,8 +116,9 @@ class Result(Report):
         # put everything together
         string = space + prepend + expression
         if result is not None:
-            symbol = "=" if not result_arrow else "→"
+            symbol = " = " if not result_arrow else " → "
             string += symbol + result
+        string = string.replace("  ", "")
 
         # add to report
         self.add(f"[{theme.text_accent}]{message}:")

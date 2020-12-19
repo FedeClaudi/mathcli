@@ -118,8 +118,7 @@ def derivative(expression, wrt=None):
         ttl += f" w.r.t.[b {theme.variable}] " + wrt + "[/]"
 
         # split wrt into letters/numbers
-        nums = "123456789"
-        wrt = [s if s not in nums else int(s) for s in wrt]
+        wrt = [s if s not in "123456789" else int(s) for s in wrt]
 
     res = Result(expression, footer="derivative")
 
@@ -188,17 +187,17 @@ def solve(expression, solve_for=None, **given):
 
         res.add_expression(
             sol,
-            f"Solve for [{theme.variable}]{solve_for}[/]",
-            prepend=f"[{theme.variable}]{solve_for} ",
+            f"Solve for [{theme.variable}]{solve_for} [/]",
+            prepend=f"{solve_for}  ",
             result=value,
         )
 
     else:
         res.add_expression(
-            f"[{theme.variable}]{solve_for}" if solution else "no solution",
-            f"Solve for [{theme.variable}]{solve_for}[/]",
+            solve_for + " " if solution else "no solution",
+            f"Solve for [{theme.variable}]{solve_for} [/]",
             format=False,
-            result=solution if solution else None,
+            result=Expression(solution) if solution else None,
         )
 
     # If values are given, we can substitute them into the solution string and compute
@@ -207,10 +206,7 @@ def solve(expression, solve_for=None, **given):
             value = Expression(solution).calc(**given)
             res.add_variables(**given, message="Given")
             res.add_expression(
-                f"[{theme.variable}]{solve_for}",
-                f"Solution",
-                format=False,
-                result=value,
+                solve_for + " ", f"Solution", format=False, result=value,
             )
         else:
             value = solution

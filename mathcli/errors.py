@@ -28,8 +28,7 @@ class DerivativeArgumentsNumberError(ValueError):
             "the variable(s) of differentiation must be supplied.\n"
             "Original expression:\n"
             f"   -->   {expression.string}\n"
-            "Derivation variables:\n"
-            "".join(wrt)
+            "Derivation variables:\n" + ("".join(wrt) if wrt else "None")
         )
 
     def __str__(self):

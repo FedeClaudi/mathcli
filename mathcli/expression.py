@@ -118,7 +118,13 @@ class ExpressionString(object):
 
         if self.is_derivative:
             # clean up the latex for derivative expressions
-            delta, expr = ltx.split("}(")
+            try:
+                delta, expr = ltx.split("}(")
+            except ValueError:
+                # the derivative argument is not bounded by {}
+                idx = ltx.rfind("}")
+                delta = ltx[:idx]
+                expr = ltx[idx + 1 :] + "}"
             ltx = delta + "} [" + expr[:-1].strip() + "] "
 
         # parse exponentials
